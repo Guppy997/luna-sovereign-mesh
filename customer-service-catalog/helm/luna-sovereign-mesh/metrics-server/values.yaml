@@ -1,0 +1,11 @@
+namespace:
+  labels:
+    project-name: "luna-sovereign-mesh"
+    stage: "dev"
+metrics-server:
+  imagePullSecrets:
+    - name: image-pull-secret
+  serviceMonitor:
+    additionalLabels:
+      monitoring:
+        instance: "luna-sovereign-mesh-dev"

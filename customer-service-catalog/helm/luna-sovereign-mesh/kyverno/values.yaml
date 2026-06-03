@@ -1,0 +1,38 @@
+crds:
+  install: true
+
+namespace:
+  labels:
+    project-name: "luna-sovereign-mesh"
+    stage: "dev"
+
+kyverno:
+  global:
+    imagePullSecrets:
+      - name: image-pull-secret
+  admissionController:
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        monitoring.instance: "luna-sovereign-mesh-dev"
+  backgroundController:
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        monitoring.instance: "luna-sovereign-mesh-dev"
+  cleanupController:
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        monitoring.instance: "luna-sovereign-mesh-dev"
+  reportsController:
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        monitoring.instance: "luna-sovereign-mesh-dev"
+  # FIX: https://github.com/kyverno/kyverno/issues/15116
+  kyverno-api:
+    labels:
+      app.kubernetes.io/managed-by: Helm
+    annotations:
+      meta.helm.sh/release-name: kyverno
