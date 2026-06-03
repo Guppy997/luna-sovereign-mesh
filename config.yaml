@@ -1,0 +1,62 @@
+version: v1alpha1
+clusters:
+  - name: luna-sovereign-mesh
+    stage: dev
+    type: <hub or spoke>
+    dnsName: luna-sovereign-mesh-dev.luna.local
+    ssoOrg: <my-org>
+    ssoTeam: <my-team>
+    ingressClassName: traefik
+    terraform:
+      provider: <provider>
+      projectId: <project-id>
+      kubernetesType: <edge or ske>
+      kubernetesVersion: "1.34"
+      dns:
+        name: luna-sovereign-mesh-dev.luna.local
+        email: my-test@nowhere.com
+    argocd:
+      repo:
+        https:
+          customer:
+            url: https://github.com/Guppy997/luna-sovereign-mesh.git
+            targetRevision: main
+          managed:
+            url: https://github.com/Guppy997/luna-sovereign-mesh.git
+            targetRevision: main
+    services:
+      argocd:
+        status: disabled
+      cert-manager:
+        status: enabled
+        config:
+          clusterIssuer:
+            email: yourname@your-domain.de
+            name: letsencrypt-staging
+            server: https://acme-staging-v02.api.letsencrypt.org/directory
+      external-dns:
+        status: enabled
+      external-secrets:
+        status: enabled
+      homer-dashboard:
+        status: enabled
+      kube-prometheus-stack:
+        status: enabled
+      kyverno:
+        status: enabled
+      kyverno-policies:
+        status: enabled
+      kyverno-policy-reporter:
+        status: enabled
+      loki:
+        status: enabled
+      longhorn:
+        status: disabled
+      metallb:
+        status: disabled
+      metrics-server:
+        status: disabled
+      oauth2-proxy:
+        status: enabled
+      traefik:
+        status: enabled
