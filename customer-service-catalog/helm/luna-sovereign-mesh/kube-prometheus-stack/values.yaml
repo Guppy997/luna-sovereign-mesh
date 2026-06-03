@@ -19,8 +19,6 @@ kube-prometheus-stack:
       ingressClassName: traefik
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-staging
-        traefik.ingress.kubernetes.io/router.middlewares: oauth2-proxy-oauth-auth@kubernetescrd
-      enabled: true
       paths:
         - /prometheus
       pathType: ImplementationSpecific
@@ -59,8 +57,6 @@ kube-prometheus-stack:
       ingressClassName: traefik
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-staging
-        traefik.ingress.kubernetes.io/router.middlewares: oauth2-proxy-oauth-auth@kubernetescrd
-      enabled: true
       paths:
         - /alertmanager
       pathType: ImplementationSpecific
@@ -165,8 +161,6 @@ kube-prometheus-stack:
       ingressClassName: traefik
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-staging
-        traefik.ingress.kubernetes.io/router.middlewares: oauth2-proxy-oauth-auth@kubernetescrd
-      enabled: true
       path: /grafana
       pathType: ImplementationSpecific
       hosts:
@@ -175,22 +169,10 @@ kube-prometheus-stack:
         - secretName: tls-grafana
           hosts:
             - luna-sovereign-mesh-dev.luna.local
-    envFromSecrets:
-      - name: oauth2-credentials
     grafana.ini:
       server:
         root_url: https://luna-sovereign-mesh-dev.luna.local/grafana/
         serve_from_sub_path: true
-      auth.github:
-        name: "Github"
-        enabled: true
-        client_id: ${client-id}
-        client_secret: ${client-secret}
-        allow_sign_up: true
-        auto_login: false
-        scopes: "user:email,read:org"
-        allowed_organizations: "[\"Guppy997\"]"
-        role_attribute_path: contains(groups[*], '@Guppy997/luna-team') && 'Admin' || 'Viewer'
     additionalDataSources:
       - access: proxy
         isDefault: false
@@ -220,10 +202,6 @@ externalSecrets:
       secretStoreRef: luna-sovereign-mesh-dev
       dataFrom:
         - remoteKey: grafana_credentials
-    oauth2-credentials:
-      secretStoreRef: luna-sovereign-mesh-dev
-      dataFrom:
-        - remoteKey: grafana_oauth2_credentials
 
 namespace:
   labels:

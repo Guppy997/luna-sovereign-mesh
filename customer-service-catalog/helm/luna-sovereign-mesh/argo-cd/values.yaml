@@ -90,7 +90,7 @@ inClusterSecretLabels:
 ## Hub labels
   argocd: "disabled"
   cert-manager: "enabled"
-  external-dns: "enabled"
+  external-dns: "disabled"
   external-secrets: "enabled"
   homer-dashboard: "enabled"
   kube-prometheus-stack: "enabled"
@@ -101,7 +101,7 @@ inClusterSecretLabels:
   longhorn: "disabled"
   metallb: "disabled"
   metrics-server: "disabled"
-  oauth2-proxy: "enabled"
+  oauth2-proxy: "disabled"
   traefik: "enabled"
 
 externalSecrets:
@@ -114,12 +114,6 @@ externalSecrets:
       kind: ClusterSecretStore
       name: luna-sovereign-mesh-dev
 
-
-  secrets:
-    oauth2-credentials:
-      secretStoreRef: luna-sovereign-mesh-dev
-      dataFrom:
-        - remoteKey: argo_oauth2_credentials
 argo-cd:
   server:
     ingressGrpc:
@@ -130,26 +124,12 @@ argo-cd:
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-staging
     ingress:
-      enabled: true
       path: "/argocd"
       ingressClassName: traefik
       tls: true
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-staging
-        traefik.ingress.kubernetes.io/router.middlewares: oauth2-proxy-oauth-auth@kubernetescrd
   configs:
-    cm:
-      url: https://luna-sovereign-mesh-dev.luna.local/argocd
-      dex.config: |
-        connectors:
-          - type: github
-            id: github
-            name: GitHub
-            config:
-              clientID: $oauth2-credentials:client-id
-              clientSecret: $oauth2-credentials:client-secret
-              orgs:
-                - name: Guppy997
     rbac:
       policy.default: role:readonly
       policy.csv: |

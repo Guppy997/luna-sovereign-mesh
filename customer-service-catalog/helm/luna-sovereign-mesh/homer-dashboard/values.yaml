@@ -1,11 +1,9 @@
 ingress:
-  enabled: true
   host: luna-sovereign-mesh-dev.luna.local
   path: "/"
   ingressClassName: traefik
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-staging
-    traefik.ingress.kubernetes.io/router.middlewares: oauth2-proxy-oauth-auth@kubernetescrd
 namespace:
   labels:
     project-name: "luna-sovereign-mesh"
@@ -113,11 +111,6 @@ dashboardConfig:
           logo: "/assets/tools/kyverno.png"
           url: "/kyverno/"
           subtitle: "Policy Reporter Dashboard"
-          target: "_blank"
-        - name: "traefik"
-          logo: "/assets/tools/traefik.png"
-          url: "https://luna-sovereign-mesh-dev.luna.local/traefik/dashboard/"
-          subtitle: "Traefik Dashboard"
           target: "_blank"
     - name: "DevOps Links"
       items:

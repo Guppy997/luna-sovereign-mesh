@@ -56,15 +56,3 @@ oauth2-proxy:
         monitoring.instance: "luna-sovereign-mesh-dev"
 
 
-middleware:
-  name: oauth-auth
-  namespace: oauth2-proxy
-
-  forwardAuth:
-    address: http://oauth2-proxy.oauth2-proxy.svc.cluster.local/oauth2/
-    trustForwardHeader: true
-
-    authResponseHeaders:
-      - X-Auth-Request-User
-      - X-Auth-Request-Email
-      - Authorization

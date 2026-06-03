@@ -35,7 +35,7 @@ clusters:
             name: letsencrypt-staging
             server: https://acme-staging-v02.api.letsencrypt.org/directory
       external-dns:
-        status: enabled
+        status: disabled
       external-secrets:
         status: enabled
       homer-dashboard:
@@ -57,6 +57,6 @@ clusters:
       metrics-server:
         status: disabled
       oauth2-proxy:
-        status: enabled
+        status: disabled
       traefik:
         status: enabled
