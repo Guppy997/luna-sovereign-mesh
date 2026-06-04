@@ -165,6 +165,9 @@ kube-prometheus-stack:
         memory: 100Mi
       limits:
         memory: 256Mi
+    service:
+      type: NodePort
+      nodePort: 32518
     admin:
       existingSecret: grafana-admin-credentials
       userKey: admin-user
