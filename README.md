@@ -118,6 +118,19 @@ sops -d clusters/dev/secrets/kubara-env-secret.yaml
 |---|---|
 | SOPS + Age encryption setup | Done |
 | kubara cluster scaffolding | Done |
-| Argo CD bootstrap | Pending |
-| Core services deployment | Pending |
-| Raspberry Pi migration | Pending |
+| Argo CD bootstrap | Done |
+| Core services deployment | Done |
+| Raspberry Pi migration | Done |
+| AI inference (Luna) deployment | In Progress |
+| PWA Frontend deployment | Pending |
+
+## Running Services
+
+| Service | Access | Notes |
+|---|---|---|
+| Argo CD | `http://<pi-ip>:30681/argocd` | GitOps operator |
+| Grafana | `http://<pi-ip>:32518` | Monitoring dashboards |
+| Pi-hole | `http://<pi-ip>:8081/admin` | DNS + ad blocking |
+| Prometheus | ClusterIP only | Metrics backend |
+| Loki | ClusterIP only | Log aggregation |
+| Traefik | Port 80/443 | Ingress controller |
