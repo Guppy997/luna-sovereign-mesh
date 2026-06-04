@@ -30,13 +30,7 @@ argo-cd:
       minAvailable: 1
     replicas: 1
   dex:
-    enabled: true
-    resources:
-      requests:
-        cpu: 50m
-        memory: 64Mi
-      limits:
-        memory: 128Mi
+    enabled: false
     livenessProbe:
       enabled: true
     readinessProbe:
