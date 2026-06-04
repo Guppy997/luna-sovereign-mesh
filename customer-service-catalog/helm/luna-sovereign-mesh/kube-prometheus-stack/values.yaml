@@ -4,6 +4,11 @@ kube-prometheus-stack:
       - name: image-pull-secret
     imageRegistry: ""
   prometheusOperator:
+    resources:
+      requests:
+        memory: 100Mi
+      limits:
+        memory: 200Mi
     serviceMonitor:
       additionalLabels:
         monitoring.instance: luna-sovereign-mesh-dev
@@ -32,6 +37,11 @@ kube-prometheus-stack:
 
     prometheusSpec:
       retention: 10d
+      resources:
+        requests:
+          memory: 400Mi
+        limits:
+          memory: 800Mi
       serviceMonitorSelector:
         matchLabels:
           monitoring.instance: luna-sovereign-mesh-dev
@@ -150,6 +160,11 @@ kube-prometheus-stack:
       additionalLabels:
         monitoring.instance: luna-sovereign-mesh-dev
   grafana:
+    resources:
+      requests:
+        memory: 100Mi
+      limits:
+        memory: 256Mi
     admin:
       existingSecret: grafana-admin-credentials
       userKey: admin-user
