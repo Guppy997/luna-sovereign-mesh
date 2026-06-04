@@ -67,7 +67,7 @@ alloy:
     resources:
       requests:
         cpu: 100m
-        memory: 300Mi
+        memory: 150Mi
       limits:
         memory: 300Mi
     securityContext:
@@ -200,9 +200,9 @@ loki:
     resources:
       requests:
         cpu: 50m
-        memory: 500Mi
+        memory: 200Mi
       limits:
-        memory: 500Mi
+        memory: 400Mi
   lokiCanary:
     resources:
       requests:

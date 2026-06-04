@@ -34,9 +34,9 @@ argo-cd:
     resources:
       requests:
         cpu: 50m
-        memory: 256Mi
+        memory: 64Mi
       limits:
-        memory: 256Mi
+        memory: 128Mi
     livenessProbe:
       enabled: true
     readinessProbe:
@@ -45,9 +45,9 @@ argo-cd:
     resources:
       requests:
         cpu: 100m
-        memory: 256Mi
+        memory: 64Mi
       limits:
-        memory: 256Mi
+        memory: 128Mi
     livenessProbe:
       enabled: true
     readinessProbe:
@@ -62,9 +62,9 @@ argo-cd:
     resources:
       requests:
         cpu: 100m
-        memory: 512Mi
+        memory: 128Mi
       limits:
-        memory: 512Mi
+        memory: 256Mi
     livenessProbe:
       enabled: true
     readinessProbe:
@@ -83,9 +83,9 @@ argo-cd:
     resources:
       requests:
         cpu: 100m
-        memory: 512Mi
+        memory: 128Mi
       limits:
-        memory: 512Mi
+        memory: 256Mi
   configs:
     cm:
       exec.enabled: false
@@ -118,16 +118,16 @@ argo-cd:
     resources:
       requests:
         cpu: 250m
-        memory: 1000Mi
+        memory: 256Mi
       limits:
-        memory: 1000Mi
+        memory: 400Mi
   controller:
     resources:
       requests:
         cpu: 250m
-        memory: 2000Mi
+        memory: 400Mi
       limits:
-        memory: 2000Mi
+        memory: 600Mi
     metrics:
       enabled: false
       serviceMonitor:
