@@ -182,6 +182,9 @@ kube-prometheus-stack:
         domain: ""
         root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
         serve_from_sub_path: false
+      feature_toggles:
+        kubernetesClientDashboardsFolders: false
+        unifiedStorageDashboards: false
     additionalDataSources:
       - access: proxy
         isDefault: false
