@@ -9,7 +9,7 @@ bootstrapValues:
         kind: ClusterSecretStore
         name: "luna-sovereign-mesh-dev"
       remoteRef:
-        remoteKey: docker_config
+        remoteKey: docker-config
         remoteKeyProperty: pull-secret
   projects:
     luna-sovereign-mesh-dev:

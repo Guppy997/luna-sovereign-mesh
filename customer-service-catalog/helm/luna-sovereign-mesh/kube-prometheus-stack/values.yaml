@@ -216,7 +216,7 @@ externalSecrets:
     grafana-admin-credentials:
       secretStoreRef: luna-sovereign-mesh-dev
       dataFrom:
-        - remoteKey: grafana_credentials
+        - remoteKey: grafana-credentials
 
 namespace:
   labels:
