@@ -176,16 +176,7 @@ kube-prometheus-stack:
       labels:
         monitoring.instance: luna-sovereign-mesh-dev
     ingress:
-      enabled: true
-      ingressClassName: traefik
-      path: /grafana
-      pathType: ImplementationSpecific
-      hosts:
-        - luna-sovereign-mesh-dev.luna.local
-    grafana.ini:
-      server:
-        root_url: http://luna-sovereign-mesh-dev.luna.local/grafana/
-        serve_from_sub_path: true
+      enabled: false
     additionalDataSources:
       - access: proxy
         isDefault: false
