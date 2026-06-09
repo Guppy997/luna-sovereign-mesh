@@ -64,6 +64,9 @@ config:
       Self-Hosted:
         style: row
         columns: 4
+      Server:
+        style: row
+        columns: 4
 
   widgets:
     - kubernetes:
@@ -146,6 +149,13 @@ config:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10000
             description: Fokus-Timer & Lernprojekte
             icon: si:pwa
+
+    - Server:
+        - Open Claw:
+            href: http://100.87.126.56:18789
+            description: Oracle Cloud Server
+            icon: si:oracle
+            ping: 100.87.126.56
 
   bookmarks:
     - Cluster:
