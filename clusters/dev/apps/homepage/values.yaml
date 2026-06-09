@@ -155,7 +155,7 @@ config:
             href: http://100.87.126.56:18789
             description: Oracle Cloud Server
             icon: si:oracle
-            ping: 100.87.126.56
+            siteMonitor: http://100.87.126.56:18789
 
   bookmarks:
     - Cluster:
