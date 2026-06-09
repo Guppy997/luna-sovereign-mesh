@@ -15,16 +15,11 @@ policy-reporter:
   ui:
     enabled: true
     ingress:
+      enabled: true
       className: traefik
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-staging
       hosts:
-        - host: luna-sovereign-mesh-dev.luna.local
+        - host: raspberrypi-1.tailddc8f7.ts.net
           paths:
-            - path: "/kyverno"
+            - path: "/policy-reporter"
               pathType: Prefix
-      tls:
-        - secretName: tls-kyverno-ui
-          hosts:
-            - luna-sovereign-mesh-dev.luna.local
 

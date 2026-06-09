@@ -135,7 +135,7 @@ config:
             namespace: kube-prometheus-stack
             app: alertmanager
         - Kyverno Policy Reporter:
-            href: http://192.168.178.117:30681/argocd/applications/luna-sovereign-mesh-kyverno-policy-reporter
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10001/policy-reporter
             description: Policy Dashboard
             icon: si:kubernetes
             namespace: kyverno-policy-reporter
