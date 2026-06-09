@@ -116,6 +116,8 @@ externalSecrets:
 
 argo-cd:
   server:
+    service:
+      type: ClusterIP
     ingressGrpc:
       enabled: false
     ingress:

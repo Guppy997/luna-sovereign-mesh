@@ -112,7 +112,7 @@ kube-prometheus-stack:
 #        - msteams-webhook-url
 #        - uptimerobot-webhook-url
 
-      externalUrl: https://luna-sovereign-mesh-dev.luna.local/alertmanager
+      externalUrl: https://raspberrypi-1.tailddc8f7.ts.net:10001/alertmanager
       routePrefix: /alertmanager
 
   kube-state-metrics:
@@ -155,8 +155,7 @@ kube-prometheus-stack:
       limits:
         memory: 256Mi
     service:
-      type: NodePort
-      nodePort: 32518
+      type: ClusterIP
     admin:
       existingSecret: grafana-admin-credentials
       userKey: admin-user
