@@ -21,19 +21,13 @@ kube-prometheus-stack:
       additionalLabels:
         monitoring.instance: luna-sovereign-mesh-dev
     ingress:
+      enabled: true
       ingressClassName: traefik
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-staging
       paths:
         - /prometheus
-      pathType: ImplementationSpecific
+      pathType: Prefix
       hosts:
-        - luna-sovereign-mesh-dev.luna.local
-      tls:
-        - secretName: tls-prometheus
-          hosts:
-            - luna-sovereign-mesh-dev.luna.local
-
+        - raspberrypi-1.tailddc8f7.ts.net
 
     prometheusSpec:
       retention: 10d
@@ -53,7 +47,7 @@ kube-prometheus-stack:
             resources:
               requests:
                 storage: 10Gi
-      externalUrl: https://luna-sovereign-mesh-dev.luna.local/prometheus
+      externalUrl: https://raspberrypi-1.tailddc8f7.ts.net:10001/prometheus
       routePrefix: /prometheus
     thanosServiceMonitor:
       serviceMonitor:
@@ -64,18 +58,13 @@ kube-prometheus-stack:
       additionalLabels:
         monitoring.instance: luna-sovereign-mesh-dev
     ingress:
+      enabled: true
       ingressClassName: traefik
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-staging
       paths:
         - /alertmanager
-      pathType: ImplementationSpecific
+      pathType: Prefix
       hosts:
-        - luna-sovereign-mesh-dev.luna.local
-      tls:
-        - secretName: tls-alertmanager
-          hosts:
-            - luna-sovereign-mesh-dev.luna.local
+        - raspberrypi-1.tailddc8f7.ts.net
 
 
 # Below is an example alertmanager.config section:
@@ -176,12 +165,17 @@ kube-prometheus-stack:
       labels:
         monitoring.instance: luna-sovereign-mesh-dev
     ingress:
-      enabled: false
+      enabled: true
+      ingressClassName: traefik
+      path: /grafana
+      pathType: Prefix
+      hosts:
+        - raspberrypi-1.tailddc8f7.ts.net
     grafana.ini:
       server:
-        domain: ""
-        root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
-        serve_from_sub_path: false
+        domain: raspberrypi-1.tailddc8f7.ts.net
+        root_url: "https://raspberrypi-1.tailddc8f7.ts.net:10001/grafana/"
+        serve_from_sub_path: true
       feature_toggles:
         kubernetesClientDashboardsFolders: false
         unifiedStorageDashboards: false

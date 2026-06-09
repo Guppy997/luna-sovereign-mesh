@@ -117,19 +117,19 @@ config:
 
     - Monitoring:
         - Grafana:
-            href: http://192.168.178.117:32518
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10001/grafana
             description: Monitoring Dashboards
             icon: grafana.png
             namespace: kube-prometheus-stack
             app: grafana
         - Prometheus:
-            href: http://192.168.178.117:30681/argocd/applications/luna-sovereign-mesh-kube-prometheus-stack
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10001/prometheus
             description: Metriken & Alerts
             icon: prometheus.png
             namespace: kube-prometheus-stack
             app: prometheus
         - Alertmanager:
-            href: http://192.168.178.117:30681/argocd/applications/luna-sovereign-mesh-kube-prometheus-stack
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10001/alertmanager
             description: Alert Routing
             icon: alertmanager.png
             namespace: kube-prometheus-stack
