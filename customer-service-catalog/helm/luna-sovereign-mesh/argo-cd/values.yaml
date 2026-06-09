@@ -117,18 +117,13 @@ externalSecrets:
 argo-cd:
   server:
     ingressGrpc:
-      enabled: true
-      path: "/argocd"
-      ingressClassName: traefik
-      tls: true
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-staging
+      enabled: false
     ingress:
+      enabled: true
+      hostname: raspberrypi-1.tailddc8f7.ts.net
       path: "/argocd"
       ingressClassName: traefik
-      tls: true
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-staging
+      tls: false
   configs:
     rbac:
       policy.default: role:readonly
@@ -139,7 +134,7 @@ argo-cd:
       server.basehref: /argocd
       server.insecure: true
   global:
-    domain: luna-sovereign-mesh-dev.luna.local
+    domain: raspberrypi-1.tailddc8f7.ts.net
     revisionHistoryLimit: 5
     imagePullSecrets:
       - name: image-pull-secret

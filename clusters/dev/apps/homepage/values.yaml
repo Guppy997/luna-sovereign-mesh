@@ -93,7 +93,7 @@ config:
   services:
     - Infrastruktur:
         - ArgoCD:
-            href: http://192.168.178.117:30681/argocd
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10001/argocd
             description: GitOps Deployment Dashboard
             icon: argocd.png
             namespace: argocd
