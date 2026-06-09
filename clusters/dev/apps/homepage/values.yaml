@@ -1,0 +1,145 @@
+enableRbac: true
+
+serviceAccount:
+  name: homepage
+  create: true
+
+service:
+  main:
+    ports:
+      http:
+        port: 3000
+
+ingress:
+  main:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - host: luna-sovereign-mesh-dev.luna.local
+        paths:
+          - path: /
+            pathType: Prefix
+
+env:
+  - name: HOMEPAGE_ALLOWED_HOSTS
+    value: "luna-sovereign-mesh-dev.luna.local,192.168.178.117"
+
+persistence:
+  logs:
+    enabled: true
+    type: emptyDir
+    mountPath: /app/config/logs
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+
+config:
+  settingsString: |
+    title: Luna Sovereign Mesh
+    headerStyle: boxed
+    layout:
+      Infrastruktur:
+        style: row
+        columns: 4
+      Monitoring:
+        style: row
+        columns: 4
+      Self-Hosted:
+        style: row
+        columns: 4
+
+  widgets:
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: "raspberry pi"
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+    - resources:
+        backend: kubernetes
+        expanded: true
+        cpu: true
+        memory: true
+    - search:
+        provider: duckduckgo
+        target: _blank
+
+  kubernetes:
+    mode: cluster
+
+  services:
+    - Infrastruktur:
+        - ArgoCD:
+            href: http://192.168.178.117:30681/argocd
+            description: GitOps Deployment Dashboard
+            icon: argocd.png
+            namespace: argocd
+            app: argocd-server
+        - Traefik:
+            href: http://192.168.178.117/dashboard/
+            description: Ingress Controller
+            icon: traefik.png
+            namespace: traefik
+            app: traefik
+        - Pi-hole:
+            href: http://192.168.178.117:8081/admin
+            description: DNS & Ad-Blocking
+            icon: pi-hole.png
+        - cert-manager:
+            href: http://192.168.178.117:30681/argocd/applications/luna-sovereign-mesh-cert-manager
+            description: TLS Zertifikate
+            icon: cert-manager.png
+            namespace: cert-manager
+            app: cert-manager
+
+    - Monitoring:
+        - Grafana:
+            href: http://192.168.178.117/grafana
+            description: Monitoring Dashboards
+            icon: grafana.png
+            namespace: kube-prometheus-stack
+            app: kube-prometheus-stack-grafana
+        - Prometheus:
+            href: http://192.168.178.117/prometheus
+            description: Metriken & Alerts
+            icon: prometheus.png
+            namespace: kube-prometheus-stack
+            app: kube-prometheus-stack-prometheus
+        - Alertmanager:
+            href: http://192.168.178.117/alertmanager
+            description: Alert Routing
+            icon: alertmanager.png
+            namespace: kube-prometheus-stack
+            app: kube-prometheus-stack-alertmanager
+        - Kyverno Policy Reporter:
+            href: http://192.168.178.117/kyverno
+            description: Policy Dashbord
+            icon: kyverno.png
+            namespace: kyverno
+            app: kyverno
+
+    - Self-Hosted:
+        - Lern-PWA:
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10000
+            description: Fokus-Timer & Lernprojekte
+            icon: https://raw.githubusercontent.com/gethomepage/homepage/main/public/icons/homepage.png
+        - Pi-hole DNS:
+            href: http://192.168.178.117:8081/admin
+            description: DNS-Verwaltung
+            icon: pi-hole.png
+
+  bookmarks:
+    - Cluster:
+        - GitHub Repo:
+            - abbr: GH
+              href: https://github.com/Guppy997/luna-sovereign-mesh

@@ -39,7 +39,7 @@ clusters:
       external-secrets:
         status: enabled
       homer-dashboard:
-        status: enabled
+        status: disabled
       kube-prometheus-stack:
         status: enabled
       kyverno:
