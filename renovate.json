@@ -1,0 +1,44 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "timezone": "Europe/Berlin",
+  "schedule": ["every weekend"],
+  "labels": ["dependencies", "renovate"],
+  "assignees": ["Guppy997"],
+  "enabledManagers": ["helmv3", "argocd", "docker-compose"],
+  "helmv3": {
+    "fileMatch": [
+      "managed-service-catalog/helm/.+/Chart\\.yaml$",
+      "clusters/dev/apps/.+/Chart\\.yaml$"
+    ]
+  },
+  "argocd": {
+    "fileMatch": [
+      "clusters/dev/apps/.+\\.yaml$"
+    ]
+  },
+  "docker-compose": {
+    "fileMatch": ["\\.yml$", "\\.yaml$"]
+  },
+  "packageRules": [
+    {
+      "description": "Auto-merge patch updates",
+      "matchUpdateTypes": ["patch"],
+      "matchManagers": ["helmv3", "argocd"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Group all kube-prometheus-stack updates",
+      "matchPackageNames": ["kube-prometheus-stack"],
+      "groupName": "kube-prometheus-stack"
+    },
+    {
+      "description": "Group all kyverno updates",
+      "matchPackageNames": ["kyverno", "kyverno-policies", "kyverno-policy-reporter"],
+      "groupName": "kyverno"
+    }
+  ]
+}
