@@ -45,6 +45,15 @@ config:
   settingsString: |
     title: Luna Sovereign Mesh
     headerStyle: boxed
+    background:
+      image: https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop
+      blur: sm
+      saturate: 50
+      brightness: 50
+      opacity: 30
+    cardBlur: sm
+    theme: dark
+    color: slate
     layout:
       Infrastruktur:
         style: row
@@ -102,7 +111,7 @@ config:
         - cert-manager:
             href: http://192.168.178.117:30681/argocd/applications/luna-sovereign-mesh-cert-manager
             description: TLS Zertifikate
-            icon: cert-manager.png
+            icon: si:letsencrypt
             namespace: cert-manager
             app: cert-manager
 
@@ -128,7 +137,7 @@ config:
         - Kyverno Policy Reporter:
             href: http://192.168.178.117:30681/argocd/applications/luna-sovereign-mesh-kyverno-policy-reporter
             description: Policy Dashboard
-            icon: kyverno.png
+            icon: si:kubernetes
             namespace: kyverno-policy-reporter
             app: policy-reporter-ui
 
@@ -136,11 +145,7 @@ config:
         - Lern-PWA:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10000
             description: Fokus-Timer & Lernprojekte
-            icon: https://raw.githubusercontent.com/gethomepage/homepage/main/public/icons/homepage.png
-        - Pi-hole DNS:
-            href: http://192.168.178.117:8081/admin
-            description: DNS-Verwaltung
-            icon: pi-hole.png
+            icon: si:pwa
 
   bookmarks:
     - Cluster:
