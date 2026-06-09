@@ -108,29 +108,29 @@ config:
 
     - Monitoring:
         - Grafana:
-            href: http://192.168.178.117/grafana
+            href: http://192.168.178.117:32518
             description: Monitoring Dashboards
             icon: grafana.png
             namespace: kube-prometheus-stack
-            app: kube-prometheus-stack-grafana
+            app: grafana
         - Prometheus:
-            href: http://192.168.178.117/prometheus
+            href: http://192.168.178.117:30681/argocd/applications/luna-sovereign-mesh-kube-prometheus-stack
             description: Metriken & Alerts
             icon: prometheus.png
             namespace: kube-prometheus-stack
-            app: kube-prometheus-stack-prometheus
+            app: prometheus
         - Alertmanager:
-            href: http://192.168.178.117/alertmanager
+            href: http://192.168.178.117:30681/argocd/applications/luna-sovereign-mesh-kube-prometheus-stack
             description: Alert Routing
             icon: alertmanager.png
             namespace: kube-prometheus-stack
-            app: kube-prometheus-stack-alertmanager
+            app: alertmanager
         - Kyverno Policy Reporter:
-            href: http://192.168.178.117/kyverno
-            description: Policy Dashbord
+            href: http://192.168.178.117:30681/argocd/applications/luna-sovereign-mesh-kyverno-policy-reporter
+            description: Policy Dashboard
             icon: kyverno.png
-            namespace: kyverno
-            app: kyverno
+            namespace: kyverno-policy-reporter
+            app: policy-reporter-ui
 
     - Self-Hosted:
         - Lern-PWA:
