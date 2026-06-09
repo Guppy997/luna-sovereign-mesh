@@ -105,7 +105,7 @@ config:
             namespace: traefik
             app: traefik
         - Pi-hole:
-            href: http://192.168.178.117:8081/admin
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10002/admin
             description: DNS & Ad-Blocking
             icon: pi-hole.png
         - cert-manager:
