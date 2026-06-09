@@ -19,10 +19,14 @@ ingress:
         paths:
           - path: /
             pathType: Prefix
+      - host: raspberrypi-1.tailddc8f7.ts.net
+        paths:
+          - path: /
+            pathType: Prefix
 
 env:
   - name: HOMEPAGE_ALLOWED_HOSTS
-    value: "luna-sovereign-mesh-dev.luna.local,192.168.178.117"
+    value: "luna-sovereign-mesh-dev.luna.local,raspberrypi-1.tailddc8f7.ts.net,192.168.178.117"
 
 persistence:
   logs:
