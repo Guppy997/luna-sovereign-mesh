@@ -33,6 +33,15 @@ persistence:
     enabled: true
     type: emptyDir
     mountPath: /app/config/logs
+  # Next.js braucht einen beschreibbaren Cache trotz read-only root-fs
+  cache:
+    enabled: true
+    type: emptyDir
+    mountPath: /app/.next/cache
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
 
 resources:
   requests:

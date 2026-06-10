@@ -2,3 +2,31 @@ global:
   allowedIssuerDomains: "https://acme-staging-v02.api.letsencrypt.org/directory"
   allowedImageRegistries: |
    "${ARGOCD_GIT_HTTPS_URL}/*|${ARGOCD_HELM_REPO_URL}/*"
+
+# Pod-Security-Standard-Policies (Upstream-Chart) auf Enforce:
+# Verstöße werden bei der Admission abgelehnt statt nur reportet.
+kyverno-policies:
+  validationFailureAction: Enforce
+  policyExclude:
+    # k3s svclb (ServiceLB) setzt net.ipv4.ip_forward=1 —
+    # Systemkomponente, nicht von uns steuerbar
+    restrict-sysctls:
+      any:
+        - resources:
+            kinds:
+              - Pod
+            namespaces:
+              - kube-system
+
+# Security-kritische kubara-Policies auf Enforce; Qualitäts-Policies
+# (Probes, PDB, latest-Tag, Requests/Limits) bleiben bewusst auf Audit.
+itGrundschutz:
+  standard:
+    disallowPrivilegedContainers:
+      actionOverride: "Enforce"
+    disallowPrivilegeEscalation:
+      actionOverride: "Enforce"
+
+bestPractices:
+  requireReadOnlyRootFilesystem:
+    actionOverride: "Enforce"
