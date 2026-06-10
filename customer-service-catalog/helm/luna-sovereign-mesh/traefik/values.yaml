@@ -2,6 +2,13 @@ traefik:
   deployment:
     imagePullSecrets:
       - name: image-pull-secret
+  service:
+    spec:
+      # NodePorts schließen — Zugriff nur über LB-IP (LAN-seitig durch
+      # loadBalancerSourceRanges blockiert) und Tailscale Serve (ClusterIP)
+      allocateLoadBalancerNodePorts: false
+      loadBalancerSourceRanges:
+        - 100.64.0.0/10 # nur Tailnet
   api:
     dashboard: true
   ingressRoute:
