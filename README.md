@@ -15,20 +15,23 @@ The Oracle Cloud ARM64 instance serves as a testing sandbox to validate the GitO
 
 ```
 GitHub (encrypted GitOps repo)
+        │ pull (outbound only)
+        ▼
+   Argo CD (GitOps operator, auto-sync + self-heal)
         │
         ▼
-   Argo CD (GitOps operator)
-        │
-        ▼
-Kubernetes Cluster (ARM64)
-├── Traefik          — Ingress & TLS termination
-├── cert-manager     — Automatic Let's Encrypt certificates
-├── external-secrets — Sync SOPS-decrypted secrets into the cluster
-├── Kyverno          — Policy enforcement (admission control)
+Kubernetes Cluster (k3s, ARM64)
+├── Traefik          — Ingress, reachable from the tailnet only
+├── cert-manager     — Certificate management
+├── external-secrets — Sync decrypted secrets into the cluster
+├── Kyverno          — Policy engine + policy reporter
 ├── Loki             — Log aggregation
-├── kube-prometheus  — Metrics & alerting
-├── oauth2-proxy     — SSO layer for internal services
-└── homer-dashboard  — Self-hosted service dashboard
+├── kube-prometheus  — Metrics, dashboards & alerting
+└── Homepage         — Self-hosted service dashboard (entry point)
+
+Host services (outside Kubernetes)
+├── Pi-hole + Unbound — Network-wide DNS filtering + recursive resolver
+└── Tailscale         — Zero-trust mesh VPN: the only way in
 ```
 
 ## Security Design
@@ -64,6 +67,19 @@ Metadata (Kubernetes resource names, namespaces) remains readable intentionally 
 - `.env` file (plaintext credentials)
 - Unencrypted secret drafts (`*.dec.yaml`, `*.plaintext.yaml`)
 
+### Zero-Trust Network Access
+
+The cluster is not reachable from the internet **or** from the local network — the LAN is treated as untrusted, the same way a corporate network would be in a zero-trust model.
+
+- **Nothing is exposed to the internet.** No router port forwarding, no Tailscale Funnel. Argo CD only *pulls* from GitHub — there is no inbound path.
+- **All access goes through the tailnet** (Tailscale, WireGuard-based). Services are reached via MagicDNS hostnames; HTTPS endpoints are published with Tailscale Serve.
+- **LAN exposure is reduced to two ports:** DNS (53 — Pi-hole serves the home network) and SSH (22 — key-only, root login disabled) as a break-glass fallback.
+- **Enforcement happens at two independent layers:**
+  - *Kubernetes:* the Traefik LoadBalancer carries `loadBalancerSourceRanges: [100.64.0.0/10]`, enforced by kube-proxy in the kernel. NodePort allocation is disabled (`allocateLoadBalancerNodePorts: false`) — a deliberate choice, because NodePort traffic bypasses host firewalls entirely.
+  - *Host:* UFW with a default-deny inbound policy covers everything that does not run in Kubernetes (SSH, Pi-hole, kubelet, node exporter).
+- **Tailscale ACLs follow least privilege:** personal devices may reach the Pi; the tagged cloud node may not — traffic to the cloud sandbox is strictly one-way (Pi → cloud).
+- **Split DNS:** Pi-hole forwards the tailnet DNS zone (`*.ts.net`) to MagicDNS, so service hostnames resolve consistently for every device in the house.
+
 ## Repository Structure
 
 ```
@@ -87,9 +103,11 @@ luna-sovereign-mesh/
 | [Argo CD](https://argo-cd.readthedocs.io) | GitOps operator | Industry standard, declarative, Git as single source of truth |
 | [SOPS](https://github.com/getsops/sops) | Secret encryption | Native Git integration, no external server needed |
 | [Age](https://github.com/FiloSottile/age) | Encryption key provider | Modern, simple, no key server — single private key file |
-| [Traefik](https://traefik.io) | Ingress controller | Lightweight, ARM-friendly, automatic TLS via cert-manager |
+| [Traefik](https://traefik.io) | Ingress controller | Lightweight, ARM-friendly, host-based routing |
 | [Kyverno](https://kyverno.io) | Policy engine | Kubernetes-native, no sidecar proxies, YAML-based policies |
 | [k3s](https://k3s.io) | Kubernetes distribution | Minimal footprint, built for ARM and edge devices |
+| [Tailscale](https://tailscale.com) | Zero-trust network access | WireGuard mesh, ACLs, MagicDNS — no exposed ports |
+| [Pi-hole](https://pi-hole.net) + [Unbound](https://nlnetlabs.nl/projects/unbound/) | DNS layer | Ad blocking + fully recursive resolution, no third-party DNS |
 
 ## Target Hardware
 
@@ -121,16 +139,20 @@ sops -d clusters/dev/secrets/kubara-env-secret.yaml
 | Argo CD bootstrap | Done |
 | Core services deployment | Done |
 | Raspberry Pi migration | Done |
+| Zero-trust network hardening (tailnet-only access) | Done |
 | AI inference (Luna) deployment | In Progress |
 | PWA Frontend deployment | Pending |
+| Kyverno policies from audit to enforce mode | Planned |
 
 ## Running Services
 
+All services are reachable exclusively from inside the tailnet, routed by Traefik via host-based rules on the node's MagicDNS name.
+
 | Service | Access | Notes |
 |---|---|---|
-| Argo CD | `http://<pi-ip>:30681/argocd` | GitOps operator |
-| Grafana | `http://<pi-ip>:32518` | Monitoring dashboards |
-| Pi-hole | `http://<pi-ip>:8081/admin` | DNS + ad blocking |
-| Prometheus | ClusterIP only | Metrics backend |
-| Loki | ClusterIP only | Log aggregation |
-| Traefik | Port 80/443 | Ingress controller |
+| Homepage | `http://<node>.<tailnet>.ts.net/` | Dashboard & entry point for all services |
+| Grafana | `…/grafana` | Monitoring dashboards |
+| Argo CD | `…/argocd` | GitOps operator |
+| Alertmanager, Prometheus, Policy Reporter | tailnet ingress | Monitoring & policy backends |
+| Pi-hole | Tailscale Serve (HTTPS) | DNS + ad blocking, runs on the host |
+| Loki | ClusterIP only | Log aggregation, no external access |
