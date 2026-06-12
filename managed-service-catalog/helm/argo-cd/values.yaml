@@ -119,9 +119,11 @@ argo-cd:
     resources:
       requests:
         cpu: 250m
-        memory: 400Mi
+        memory: 512Mi
       limits:
-        memory: 600Mi
+        # Controller needs ~650-700Mi at steady state with current app count;
+        # 600Mi caused a sustained OOMKill crash loop (see docs/incidents/2026-06-12-argocd-oom-crashloop.md)
+        memory: 1Gi
     metrics:
       enabled: false
       serviceMonitor:

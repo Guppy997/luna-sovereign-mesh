@@ -130,6 +130,14 @@ git clone https://github.com/Guppy997/luna-sovereign-mesh.git
 sops -d clusters/dev/secrets/kubara-env-secret.yaml
 ```
 
+## Incident Postmortems
+
+Things that broke, why they broke, and what changed as a result — written up
+honestly because a single-node homelab is exactly where you learn this:
+
+- [2026-06-12 — Argo CD controller OOMKill crash loop](docs/incidents/2026-06-12-argocd-oom-crashloop.md)
+  (1,343 OOM kills in 8 days, undetected; node froze under memory pressure)
+
 ## Status
 
 | Phase | Status |
