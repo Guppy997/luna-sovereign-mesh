@@ -42,6 +42,8 @@ All 1,343 kills were **cgroup-level** (`CONSTRAINT_MEMCG`), not global OOM event
 
 1. **Raised the controller memory limit** from 600Mi to 1Gi (request 400Mi → 512Mi) in `managed-service-catalog/helm/argo-cd/values.yaml`, deployed via GitOps as usual.
 2. **Added zram swap** (compressed in-RAM swap) on the node as a pressure-relief valve, so future memory spikes degrade gracefully instead of freezing the system. k3s tolerates swap by default.
+3. **Closed the detection gap with self-hosted push notifications** (2026-06-13): a [ntfy](https://ntfy.sh) server plus the [alertmanager-ntfy](https://github.com/alexbakker/alertmanager-ntfy) bridge now run as a GitOps app (`clusters/dev/apps/ntfy/`). Alertmanager routes every alert except `Watchdog`/`InfoInhibitor` to the ntfy topic `luna-alerts` (firing = urgent priority, resolved = default). The server is exposed tailnet-only via Tailscale Serve on `:10003`, and the Android app connects over WebSocket directly — push delivery without Google FCM, consistent with the zero-trust design. Verified end-to-end with a synthetic alert through the Alertmanager API. A pod crash-looping like this one now reaches a phone within ~1 minute instead of going unnoticed for 8 days.
+4. **Added alert visibility to the Homepage dashboard**: the Prometheus tile now uses the homepage `prometheus` widget, which shows the live count of firing alerts on the landing page.
 
 ## Lessons Learned
 
@@ -52,5 +54,5 @@ All 1,343 kills were **cgroup-level** (`CONSTRAINT_MEMCG`), not global OOM event
 
 ## Follow-ups
 
-- [ ] Alertmanager route for crash-looping pods / OOM kills (before OpenClaw deployment)
+- [x] Alertmanager route for crash-looping pods / OOM kills — done 2026-06-13 via self-hosted ntfy (see Resolution #3)
 - [ ] Review Prometheus retention (10d) and footprint (~750Mi RSS) to free headroom for AI inference workloads

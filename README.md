@@ -163,4 +163,5 @@ All services are reachable exclusively from inside the tailnet, routed by Traefi
 | Argo CD | `…/argocd` | GitOps operator |
 | Alertmanager, Prometheus, Policy Reporter | tailnet ingress | Monitoring & policy backends |
 | Pi-hole | Tailscale Serve (HTTPS) | DNS + ad blocking, runs on the host |
+| ntfy | Tailscale Serve (HTTPS, `:10003`) | Self-hosted alert push notifications (no FCM), fed by Alertmanager |
 | Loki | ClusterIP only | Log aggregation, no external access |
