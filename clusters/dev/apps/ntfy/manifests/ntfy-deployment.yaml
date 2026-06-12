@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ntfy
+  namespace: ntfy
+  labels:
+    app.kubernetes.io/name: ntfy
+    app.kubernetes.io/part-of: alerting
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ntfy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ntfy
+        app.kubernetes.io/part-of: alerting
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: ntfy
+          image: docker.io/binwiederhier/ntfy:v2.14.0
+          args: ["serve"]
+          env:
+            # Non-Root kann nicht an :80 binden
+            - name: NTFY_LISTEN_HTTP
+              value: ":8080"
+            # Muss der URL entsprechen, unter der Clients (Pixel) den Server erreichen
+            - name: NTFY_BASE_URL
+              value: "https://raspberrypi-1.tailddc8f7.ts.net:10003"
+            - name: NTFY_BEHIND_PROXY
+              value: "true"
+            - name: NTFY_CACHE_FILE
+              value: "/var/cache/ntfy/cache.db"
+            - name: NTFY_CACHE_DURATION
+              value: "72h"
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            initialDelaySeconds: 15
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          volumeMounts:
+            # Nachrichten-Cache ist verzichtbar (nur Zustell-Historie) — emptyDir reicht
+            - name: cache
+              mountPath: /var/cache/ntfy
+      volumes:
+        - name: cache
+          emptyDir: {}

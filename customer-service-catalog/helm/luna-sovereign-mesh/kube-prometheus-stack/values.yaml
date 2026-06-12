@@ -66,6 +66,30 @@ kube-prometheus-stack:
       hosts:
         - raspberrypi-1.tailddc8f7.ts.net
 
+    # Alert-Routing → ntfy (Push aufs Pixel via Tailnet).
+    # Eingeführt nach dem OOM-Incident vom 2026-06-12: Alerts feuerten 8 Tage
+    # ins Leere, weil kein Receiver konfiguriert war.
+    # Siehe docs/incidents/2026-06-12-argocd-oom-crashloop.md
+    config:
+      route:
+        receiver: ntfy
+        group_by: ["namespace", "alertname"]
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 12h
+        routes:
+          # Watchdog (Heartbeat) und InfoInhibitor sind Hilfs-Alerts, kein Push
+          - receiver: "null"
+            matchers:
+              - alertname =~ "Watchdog|InfoInhibitor"
+      receivers:
+        - name: "null"
+        - name: ntfy
+          webhook_configs:
+            # alertmanager-ntfy-Bridge (Namespace ntfy) übersetzt
+            # Alertmanager-Webhooks in ntfy-Pushes auf Topic "luna-alerts"
+            - url: http://alertmanager-ntfy.ntfy.svc.cluster.local:8000/hook
+              send_resolved: true
 
 # Below is an example alertmanager.config section:
 # It demonstrates an advanced routing setup that includes Microsoft Teams (v2), a watchdog receiver

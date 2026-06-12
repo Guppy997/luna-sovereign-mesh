@@ -140,12 +140,21 @@ config:
             icon: prometheus.png
             namespace: kube-prometheus-stack
             app: prometheus
+            widget:
+              type: prometheus
+              url: http://kube-prometheus-stack-prometheus.kube-prometheus-stack.svc.cluster.local:9090/prometheus
         - Alertmanager:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10001/alertmanager
             description: Alert Routing
             icon: alertmanager.png
             namespace: kube-prometheus-stack
             app: alertmanager
+        - ntfy:
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10003
+            description: Alert-Push aufs Handy
+            icon: ntfy.png
+            namespace: ntfy
+            app: ntfy
         - Kyverno Policy Reporter:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10001/policy-reporter
             description: Policy Dashboard
