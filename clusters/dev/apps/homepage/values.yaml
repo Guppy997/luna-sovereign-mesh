@@ -107,7 +107,7 @@ config:
         - ArgoCD:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10001/argocd
             description: GitOps Deployment Dashboard
-            icon: argocd.png
+            icon: argo-cd.png
             namespace: argocd
             app: argocd-server
         - Traefik:
@@ -123,7 +123,7 @@ config:
         - cert-manager:
             href: http://192.168.178.117:30681/argocd/applications/luna-sovereign-mesh-cert-manager
             description: TLS Zertifikate
-            icon: si:letsencrypt
+            icon: cert-manager.png
             namespace: cert-manager
             app: cert-manager
 
@@ -158,7 +158,7 @@ config:
         - Kyverno Policy Reporter:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10001/policy-reporter
             description: Policy Dashboard
-            icon: si:kubernetes
+            icon: kyverno.png
             namespace: kyverno-policy-reporter
             app: policy-reporter-ui
 
@@ -166,13 +166,13 @@ config:
         - Lern-PWA:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10000
             description: Fokus-Timer & Lernprojekte
-            icon: si:pwa
+            icon: si-pwa-#5a0fc8
 
     - Server:
         - Open Claw:
             href: http://100.87.126.56:18789
             description: Oracle Cloud Server
-            icon: si:oracle
+            icon: oracle.png
             siteMonitor: http://100.87.126.56:18789
 
   bookmarks:
