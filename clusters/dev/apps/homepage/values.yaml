@@ -81,9 +81,6 @@ config:
       Monitoring:
         style: row
         columns: 3
-      Automatisierung:
-        style: row
-        columns: 2
 
   widgets:
     - kubernetes:
@@ -186,16 +183,6 @@ config:
             icon: kyverno.png
             namespace: kyverno-policy-reporter
             app: policy-reporter-ui
-
-    - Automatisierung:
-        - Health Digest:
-            href: https://raspberrypi-1.tailddc8f7.ts.net:10003/luna-alerts
-            description: Täglicher Cluster-Report (CronJob → ntfy)
-            icon: mdi-heart-pulse-#ef4444
-        - CronJobs:
-            href: https://raspberrypi-1.tailddc8f7.ts.net:10001/argocd/applications/luna-sovereign-mesh-automation
-            description: Geplante Jobs (GitOps)
-            icon: mdi-clock-outline-#22c55e
 
   bookmarks:
     - Cluster:
