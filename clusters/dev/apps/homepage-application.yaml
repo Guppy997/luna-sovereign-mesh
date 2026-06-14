@@ -18,6 +18,9 @@ spec:
     - repoURL: https://github.com/Guppy997/luna-sovereign-mesh.git
       targetRevision: main
       ref: valuesRepo
+    - repoURL: https://github.com/Guppy997/luna-sovereign-mesh.git
+      targetRevision: main
+      path: clusters/dev/apps/homepage/manifests
   destination:
     name: luna-sovereign-mesh
     namespace: homepage
