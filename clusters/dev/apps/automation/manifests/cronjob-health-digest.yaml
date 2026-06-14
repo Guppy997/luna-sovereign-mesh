@@ -1,0 +1,93 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cluster-health-digest
+  namespace: automation
+spec:
+  # Täglich 07:00 lokaler Zeit
+  schedule: "0 7 * * *"
+  timeZone: "Europe/Berlin"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 120
+      template:
+        spec:
+          serviceAccountName: health-digest
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: digest
+              image: alpine/k8s:1.31.5
+              imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              env:
+                - name: HOME
+                  value: /tmp
+                - name: NTFY_URL
+                  value: http://ntfy.ntfy.svc/luna-alerts
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -u
+                  KC="kubectl --cache-dir=/tmp/.kube/cache"
+
+                  NOW=$(date +%s)
+                  NODES_NOTREADY=$($KC get nodes -o json | jq -r '.items[] | select(any(.status.conditions[]; .type=="Ready" and .status!="True")) | .metadata.name')
+                  # Problem-Pods (ohne unsere eigenen Job-Runner in der automation-ns)
+                  BADPODS=$($KC get pods -A -o json | jq -r '.items[] | select(.metadata.namespace != "automation") | select(.status.phase!="Running" and .status.phase!="Succeeded") | "\(.metadata.namespace)/\(.metadata.name) [\(.status.phase)]"')
+                  # Nur Pods, deren Container in den letzten 24h neu gestartet ist (aktuell relevant, nicht kumulativ)
+                  RESTARTS=$($KC get pods -A -o json | jq -r --argjson now "$NOW" '.items[] | select(any(.status.containerStatuses[]?; (.lastState.terminated.finishedAt // empty | fromdateiso8601) > ($now - 86400))) | "\(.metadata.namespace)/\(.metadata.name) (\(.status.containerStatuses[0].restartCount)x gesamt)"' | sort -u)
+                  ARGO=$($KC get applications -n argocd -o json | jq -r '.items[] | select(.status.sync.status!="Synced" or .status.health.status!="Healthy") | "\(.metadata.name): \(.status.sync.status)/\(.status.health.status)"')
+                  CERTS_SOON=$($KC get certificates -A -o json | jq -r --argjson now "$NOW" '.items[] | select(.status.notAfter != null) | select((.status.notAfter | fromdateiso8601) - $now < 14*86400) | "\(.metadata.namespace)/\(.metadata.name)"')
+
+                  POD_TOTAL=$($KC get pods -A --no-headers | wc -l | tr -d " ")
+                  POD_RUN=$($KC get pods -A --field-selector=status.phase=Running --no-headers | wc -l | tr -d " ")
+                  NODE_TOTAL=$($KC get nodes --no-headers | wc -l | tr -d " ")
+
+                  PROBLEMS=""
+                  [ -n "$NODES_NOTREADY" ] && PROBLEMS="${PROBLEMS}⚠ Nodes nicht Ready:\n${NODES_NOTREADY}\n\n"
+                  [ -n "$BADPODS" ]        && PROBLEMS="${PROBLEMS}⚠ Problem-Pods:\n${BADPODS}\n\n"
+                  [ -n "$RESTARTS" ]       && PROBLEMS="${PROBLEMS}⚠ Viele Restarts:\n${RESTARTS}\n\n"
+                  [ -n "$ARGO" ]           && PROBLEMS="${PROBLEMS}⚠ Argo nicht Synced/Healthy:\n${ARGO}\n\n"
+                  [ -n "$CERTS_SOON" ]     && PROBLEMS="${PROBLEMS}⚠ Zertifikate laufen in <14 Tagen ab:\n${CERTS_SOON}\n\n"
+
+                  if [ -z "$PROBLEMS" ]; then
+                    TITLE="Cluster gesund"
+                    TAGS="white_check_mark"
+                    PRIO="default"
+                    BODY="Alles ok.\nNodes: ${NODE_TOTAL} Ready\nPods: ${POD_RUN}/${POD_TOTAL} Running\nArgo CD: alle Synced + Healthy\nZertifikate: keins läuft <14 Tagen ab"
+                  else
+                    TITLE="Cluster-Report: Auffälligkeiten"
+                    TAGS="warning"
+                    PRIO="high"
+                    BODY="${PROBLEMS}Pods: ${POD_RUN}/${POD_TOTAL} Running · Nodes: ${NODE_TOTAL}"
+                  fi
+
+                  printf '%b' "$BODY" | curl -sf -H "Title: ${TITLE}" -H "Tags: ${TAGS}" -H "Priority: ${PRIO}" --data-binary @- "$NTFY_URL"
+                  echo
+                  echo "Digest gesendet: ${TITLE}"
+          volumes:
+            - name: tmp
+              emptyDir: {}

@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: luna-sovereign-mesh-automation
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: luna-sovereign-mesh-dev
+  source:
+    repoURL: https://github.com/Guppy997/luna-sovereign-mesh.git
+    targetRevision: main
+    path: clusters/dev/apps/automation/manifests
+  destination:
+    name: luna-sovereign-mesh
+    namespace: automation
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
