@@ -30,7 +30,7 @@ kube-prometheus-stack:
         - raspberrypi-1.tailddc8f7.ts.net
 
     prometheusSpec:
-      retention: 10d
+      retention: 7d
       resources:
         requests:
           memory: 400Mi
