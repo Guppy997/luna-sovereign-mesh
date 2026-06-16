@@ -14,7 +14,7 @@ traefik:
   ingressRoute:
     dashboard:
       enabled: true
-      matchRule: Host(`raspberrypi-1.tailddc8f7.ts.net`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
+      matchRule: Host(`raspberrypi-1.tailddc8f7.ts.net`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api/rawdata`) || PathPrefix(`/api/overview`) || PathPrefix(`/api/version`) || PathPrefix(`/api/http`) || PathPrefix(`/api/tcp`) || PathPrefix(`/api/udp`) || PathPrefix(`/api/entrypoints`) || PathPrefix(`/api/cache`) || PathPrefix(`/api/debug`))
       entryPoints:
         - web
   metrics:
