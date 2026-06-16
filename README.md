@@ -137,6 +137,8 @@ honestly because a single-node homelab is exactly where you learn this:
 
 - [2026-06-12 — Argo CD controller OOMKill crash loop](docs/incidents/2026-06-12-argocd-oom-crashloop.md)
   (1,343 OOM kills in 8 days, undetected; node froze under memory pressure)
+- [2026-06-15 — Prometheus retention reduced from 10d to 7d](docs/incidents/2026-06-15-prometheus-retention-tuning.md)
+  (proactive tuning after OOM postmortem: ~750Mi RSS against 800Mi limit with no size cap; 3-line GitOps fix, deployed without downtime)
 - [2026-06-16 — Forced reboot → kubara network crash & silent state corruption](docs/incidents/2026-06-16-forced-reboot-network-recovery.md)
   (CNI race condition on restart; DNS integration and Pi-hole blocking silently broken; why automated recovery is a deliberate non-goal on single-node hardware)
 
