@@ -17,6 +17,14 @@ traefik:
       matchRule: Host(`raspberrypi-1.tailddc8f7.ts.net`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api/rawdata`) || PathPrefix(`/api/overview`) || PathPrefix(`/api/version`) || PathPrefix(`/api/http`) || PathPrefix(`/api/tcp`) || PathPrefix(`/api/udp`) || PathPrefix(`/api/entrypoints`) || PathPrefix(`/api/cache`) || PathPrefix(`/api/debug`))
       entryPoints:
         - web
+  # Dedicated entry point for AppFlowy — exposed via Tailscale Serve :10005
+  ports:
+    webAppflowy:
+      port: 10005
+      expose:
+        default: true
+      exposedPort: 10005
+      protocol: TCP
   metrics:
     prometheus:
       serviceMonitor:

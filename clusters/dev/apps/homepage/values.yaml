@@ -115,6 +115,13 @@ config:
             icon: mdi-robot-#7c3aed
             namespace: luna-pwa
             app: luna-pwa
+        - AppFlowy:
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10005
+            description: Kollaboratives Wissensmanagement
+            icon: mdi-note-text-outline-#5a0fc8
+            namespace: appflowy
+            app: appflowy-cloud
+            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10005/health
         - Lern-PWA:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10000
             description: Fokus-Timer & Lernprojekte
