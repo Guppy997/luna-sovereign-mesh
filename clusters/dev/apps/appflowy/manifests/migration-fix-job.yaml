@@ -1,0 +1,82 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gotrue-migration-fix
+  namespace: appflowy
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-pg
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z postgresql 5432; do sleep 2; done
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+      containers:
+        - name: fix-migration
+          image: postgres:16
+          command:
+            - sh
+            - -c
+            - |
+              psql "$DATABASE_URL" <<'SQL'
+              -- Add missing client_id column if absent (from GoTrue 0.16.0 migration conflict)
+              ALTER TABLE auth.oauth_clients
+                ADD COLUMN IF NOT EXISTS client_id text;
+              UPDATE auth.oauth_clients
+                SET client_id = id::text
+                WHERE client_id IS NULL;
+              DO $$
+              BEGIN
+                BEGIN
+                  ALTER TABLE auth.oauth_clients
+                    ALTER COLUMN client_id SET NOT NULL;
+                EXCEPTION WHEN others THEN NULL;
+                END;
+                BEGIN
+                  ALTER TABLE auth.oauth_clients
+                    ADD CONSTRAINT oauth_clients_client_id_key UNIQUE (client_id);
+                EXCEPTION WHEN duplicate_table THEN NULL;
+                END;
+              END $$;
+              CREATE INDEX IF NOT EXISTS oauth_clients_client_id_idx
+                ON auth.oauth_clients (client_id);
+              -- Mark the conflicting migration as applied so GoTrue skips it
+              INSERT INTO auth.schema_migrations (version)
+                VALUES ('20250731150234')
+                ON CONFLICT DO NOTHING;
+              SQL
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: appflowy-secrets
+                  key: pg-password
+            - name: DATABASE_URL
+              value: postgres://postgres:$(POSTGRES_PASSWORD)@postgresql:5432/appflowy?search_path=auth
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
