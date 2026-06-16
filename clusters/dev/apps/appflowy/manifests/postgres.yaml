@@ -1,4 +1,13 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-init
+  namespace: appflowy
+data:
+  01-vector.sql: |
+    CREATE EXTENSION IF NOT EXISTS vector;
+---
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgresql-data
@@ -63,7 +72,7 @@ spec:
               mountPath: /pgdata
       containers:
         - name: postgresql
-          image: postgres:16
+          image: pgvector/pgvector:0.8.2-pg16
           env:
             - name: POSTGRES_DB
               value: appflowy
@@ -111,6 +120,9 @@ spec:
               mountPath: /var/run/postgresql
             - name: tmp
               mountPath: /tmp
+            - name: initdb
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -119,3 +131,6 @@ spec:
           emptyDir: {}
         - name: tmp
           emptyDir: {}
+        - name: initdb
+          configMap:
+            name: postgresql-init

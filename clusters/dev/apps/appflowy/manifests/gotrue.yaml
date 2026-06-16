@@ -8,7 +8,7 @@ spec:
     app: gotrue
   ports:
     - port: 9999
-      targetPort: 9999
+      targetPort: 8081
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -80,7 +80,7 @@ spec:
             - name: GOTRUE_MAILER_URLS_EMAIL_CHANGE
               value: https://raspberrypi-1.tailddc8f7.ts.net:10005/gotrue/verify
           ports:
-            - containerPort: 9999
+            - containerPort: 8081
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -89,14 +89,14 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: 9999
+              port: 8081
             initialDelaySeconds: 15
             periodSeconds: 10
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /health
-              port: 9999
+              port: 8081
             initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 3
