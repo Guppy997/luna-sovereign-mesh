@@ -34,7 +34,7 @@ spec:
           image: redis:7
           # Run server directly — skip entrypoint's gosu user-switch since it
           # would need SETUID capability; persistence off (homelab cache only)
-          command: [redis-server, --save, "", --appendonly, no]
+          command: ["redis-server", "--save", "", "--appendonly", "no"]
           ports:
             - containerPort: 6379
           securityContext:
