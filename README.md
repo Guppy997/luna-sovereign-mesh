@@ -137,6 +137,14 @@ honestly because a single-node homelab is exactly where you learn this:
 
 - [2026-06-12 — Argo CD controller OOMKill crash loop](docs/incidents/2026-06-12-argocd-oom-crashloop.md)
   (1,343 OOM kills in 8 days, undetected; node froze under memory pressure)
+- [2026-06-16 — Forced reboot → kubara network crash & silent state corruption](docs/incidents/2026-06-16-forced-reboot-network-recovery.md)
+  (CNI race condition on restart; DNS integration and Pi-hole blocking silently broken; why automated recovery is a deliberate non-goal on single-node hardware)
+
+### On running production tooling on a single Pi
+
+kubara and k3s are designed for multi-node production clusters. In that environment a forced node reboot is routine: the control plane stays up, workloads reschedule, and CNI state synchronizes from surviving members.
+
+On a single-node Pi there is no redundancy — a CNI crash takes the entire cluster offline. Implementing automated single-node recovery (ordered CNI restart, DNS restoration, health gating) would be significant tooling work for a rare edge case. The accepted tradeoff is manual recovery, documented as a runbook in the postmortems above.
 
 ## Status
 
@@ -148,9 +156,9 @@ honestly because a single-node homelab is exactly where you learn this:
 | Core services deployment | Done |
 | Raspberry Pi migration | Done |
 | Zero-trust network hardening (tailnet-only access) | Done |
+| Kyverno policies from audit to enforce mode | Done |
 | AI inference (Luna) deployment | In Progress |
-| PWA Frontend deployment | Pending |
-| Kyverno policies from audit to enforce mode | Planned |
+| PWA Frontend deployment | In Progress |
 
 ## Running Services
 

@@ -55,4 +55,4 @@ All 1,343 kills were **cgroup-level** (`CONSTRAINT_MEMCG`), not global OOM event
 ## Follow-ups
 
 - [x] Alertmanager route for crash-looping pods / OOM kills — done 2026-06-13 via self-hosted ntfy (see Resolution #3)
-- [ ] Review Prometheus retention (10d) and footprint (~750Mi RSS) to free headroom for AI inference workloads
+- [x] Reduce Prometheus retention (10d → 7d) to free ~65MB working RAM — done 2026-06-15, commit `65ade6d`; RSS now 736Mi against 800Mi limit, stable
