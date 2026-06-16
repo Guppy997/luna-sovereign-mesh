@@ -133,7 +133,7 @@ config:
             namespace: argocd
             app: argocd-server
         - Traefik:
-            href: http://192.168.178.117/dashboard/
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10001/dashboard/
             description: Ingress Controller
             icon: traefik.png
             namespace: traefik
@@ -143,7 +143,7 @@ config:
             description: DNS & Ad-Blocking
             icon: pi-hole.png
         - cert-manager:
-            href: http://192.168.178.117:30681/argocd/applications/luna-sovereign-mesh-cert-manager
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10001/argocd/applications/luna-sovereign-mesh-cert-manager
             description: TLS Zertifikate
             icon: cert-manager.png
             namespace: cert-manager

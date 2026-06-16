@@ -13,7 +13,10 @@ traefik:
     dashboard: true
   ingressRoute:
     dashboard:
-      enabled: false
+      enabled: true
+      matchRule: Host(`raspberrypi-1.tailddc8f7.ts.net`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
+      entryPoints:
+        - web
   metrics:
     prometheus:
       serviceMonitor:
