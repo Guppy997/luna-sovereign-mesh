@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: luna-pwa
+  namespace: luna-pwa
+  labels:
+    app.kubernetes.io/name: luna-pwa
+    app.kubernetes.io/part-of: luna-pwa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: luna-pwa
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: luna-pwa
+        app.kubernetes.io/part-of: luna-pwa
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101       # 'nginx'-User im nginx:alpine-Image
+        runAsGroup: 101
+        fsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: pwa
+          # Lokal gebautes ARM64-Image (nginx, statische SPA + /api-Proxy zum Adapter)
+          image: luna-pwa:0.1.5
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          volumeMounts:
+            # nginx-unprivileged schreibt pid + temp nach /tmp -> bei ROFs beschreibbar machen
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
