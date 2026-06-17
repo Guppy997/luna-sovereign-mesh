@@ -70,6 +70,8 @@ argo-cd:
       minAvailable: 1
     extraArgs:
       - --enable-gzip
+    ingressGrpc:
+      enabled: false
     metrics:
       enabled: false
     serviceAccount:
