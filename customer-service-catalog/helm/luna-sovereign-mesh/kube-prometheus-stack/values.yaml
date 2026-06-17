@@ -31,11 +31,12 @@ kube-prometheus-stack:
 
     prometheusSpec:
       retention: 7d
+      retentionSize: 512MB
       resources:
         requests:
           memory: 400Mi
         limits:
-          memory: 800Mi
+          memory: 900Mi
       serviceMonitorSelector:
         matchLabels:
           monitoring.instance: luna-sovereign-mesh-dev
