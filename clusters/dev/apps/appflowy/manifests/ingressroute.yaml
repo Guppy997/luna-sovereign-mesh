@@ -15,20 +15,22 @@ metadata:
   namespace: appflowy
 spec:
   entryPoints:
-    - webAppflowy
+    - web
   routes:
-    - match: PathPrefix(`/gotrue`)
+    - match: HeaderRegexp(`X-Forwarded-Host`, `.+:10005`) && PathPrefix(`/gotrue`)
       kind: Rule
-      priority: 20
+      priority: 200
       middlewares:
         - name: gotrue-stripprefix
           namespace: appflowy
       services:
         - name: gotrue
           port: 9999
-    - match: PathPrefix(`/`)
+          passHostHeader: false
+    - match: HeaderRegexp(`X-Forwarded-Host`, `.+:10005`) && PathPrefix(`/`)
       kind: Rule
-      priority: 10
+      priority: 100
       services:
         - name: appflowy-cloud
           port: 8000
+          passHostHeader: false
