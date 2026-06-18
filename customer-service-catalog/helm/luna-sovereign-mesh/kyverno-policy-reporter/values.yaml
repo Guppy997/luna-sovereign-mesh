@@ -12,6 +12,14 @@ policy-reporter:
     serviceMonitor:
       labels:
         monitoring.instance: "luna-sovereign-mesh-dev"
+  plugin:
+    kyverno:
+      livenessProbe:
+        # wginformer braucht beim Start Zeit zum Sync — ohne Delay feuert die
+        # Probe sofort und triggert einen Restart-Loop (378 Restarts in 14d)
+        initialDelaySeconds: 60
+        failureThreshold: 10
+        periodSeconds: 10
   ui:
     enabled: true
     ingress:
