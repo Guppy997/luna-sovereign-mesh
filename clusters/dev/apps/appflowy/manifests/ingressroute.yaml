@@ -1,4 +1,15 @@
 apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: appflowy-ws-transport
+  namespace: appflowy
+spec:
+  forwardingTimeouts:
+    responseHeaderTimeout: 0   # kein Timeout für WS
+    idleConnTimeout: 0          # kein Idle-Timeout
+    dialTimeout: 30s
+---
+apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: gotrue-stripprefix
@@ -34,3 +45,4 @@ spec:
         - name: appflowy-cloud
           port: 8000
           passHostHeader: false
+          serversTransport: appflowy-ws-transport
