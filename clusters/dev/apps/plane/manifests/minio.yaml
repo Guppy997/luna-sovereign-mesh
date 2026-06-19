@@ -67,7 +67,7 @@ spec:
             runAsUser: 1000
             runAsGroup: 1000
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
           readinessProbe:
@@ -93,11 +93,19 @@ spec:
               mountPath: /data
             - name: tmp
               mountPath: /tmp
+            - name: minio-home
+              mountPath: /home/minio
+            - name: certs
+              mountPath: /.minio
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: minio-data
         - name: tmp
+          emptyDir: {}
+        - name: minio-home
+          emptyDir: {}
+        - name: certs
           emptyDir: {}
 ---
 apiVersion: batch/v1
@@ -138,7 +146,7 @@ spec:
                   key: minio-secret-key
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
           resources:

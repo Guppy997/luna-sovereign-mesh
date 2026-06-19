@@ -46,6 +46,7 @@ spec:
                   key: minio-secret-key
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
           resources:
@@ -59,10 +60,14 @@ spec:
               mountPath: /tmp
             - name: logs
               mountPath: /app/logs
+            - name: run
+              mountPath: /run
       volumes:
         - name: tmp
           emptyDir: {}
         - name: logs
+          emptyDir: {}
+        - name: run
           emptyDir: {}
 ---
 apiVersion: apps/v1
@@ -113,6 +118,7 @@ spec:
                   key: minio-secret-key
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
           resources:
@@ -124,10 +130,14 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
-            - name: celerybeat
-              mountPath: /app
+            - name: logs
+              mountPath: /app/logs
+            - name: run
+              mountPath: /run
       volumes:
         - name: tmp
           emptyDir: {}
-        - name: celerybeat
+        - name: logs
+          emptyDir: {}
+        - name: run
           emptyDir: {}
