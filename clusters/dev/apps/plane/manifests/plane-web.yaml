@@ -1,0 +1,144 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: plane-web
+  namespace: plane
+spec:
+  selector:
+    app: plane-web
+  ports:
+    - port: 3000
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plane-web
+  namespace: plane
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plane-web
+  template:
+    metadata:
+      labels:
+        app: plane-web
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: plane-web
+          image: makeplane/plane-frontend:latest
+          env:
+            - name: NEXT_PUBLIC_API_BASE_URL
+              value: "https://raspberrypi-1.tailddc8f7.ts.net:10005"
+            - name: NEXT_PUBLIC_DEPLOY_URL
+              value: "https://raspberrypi-1.tailddc8f7.ts.net:10005/spaces"
+            - name: NEXT_PUBLIC_ENABLE_OAUTH
+              value: "0"
+            - name: NEXT_PUBLIC_ENABLE_SENTRY
+              value: "0"
+            - name: NEXT_PUBLIC_ENABLE_PAGE_FAVIOCN
+              value: "0"
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 40
+            periodSeconds: 15
+            timeoutSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /app/.next/cache
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: plane-space
+  namespace: plane
+spec:
+  selector:
+    app: plane-space
+  ports:
+    - port: 3000
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plane-space
+  namespace: plane
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plane-space
+  template:
+    metadata:
+      labels:
+        app: plane-space
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: plane-space
+          image: makeplane/plane-space:latest
+          env:
+            - name: NEXT_PUBLIC_API_BASE_URL
+              value: "https://raspberrypi-1.tailddc8f7.ts.net:10005"
+            - name: NEXT_PUBLIC_DEPLOY_URL
+              value: "https://raspberrypi-1.tailddc8f7.ts.net:10005/spaces"
+            - name: NEXT_PUBLIC_ENABLE_SENTRY
+              value: "0"
+          ports:
+            - containerPort: 3000
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 25m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /app/.next/cache
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}

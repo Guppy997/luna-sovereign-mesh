@@ -1,0 +1,178 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: plane-api
+  namespace: plane
+spec:
+  selector:
+    app: plane-api
+  ports:
+    - port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plane-api
+  namespace: plane
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plane-api
+  template:
+    metadata:
+      labels:
+        app: plane-api
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-db
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z postgresql 5432; do echo waiting for postgres; sleep 2; done
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 32Mi
+        - name: migrate
+          image: makeplane/plane-backend:latest
+          command: ["./bin/docker-entrypoint-migrator.sh"]
+          envFrom:
+            - configMapRef:
+                name: plane-env
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: plane-secrets
+                  key: database-url
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: plane-secrets
+                  key: secret-key
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: plane-secrets
+                  key: minio-access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: plane-secrets
+                  key: minio-secret-key
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      containers:
+        - name: plane-api
+          image: makeplane/plane-backend:latest
+          command: ["./bin/docker-entrypoint-api.sh"]
+          envFrom:
+            - configMapRef:
+                name: plane-env
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: plane-secrets
+                  key: database-url
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: plane-secrets
+                  key: secret-key
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: plane-secrets
+                  key: minio-access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: plane-secrets
+                  key: minio-secret-key
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /api/
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /api/
+              port: 8000
+            initialDelaySeconds: 40
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 768Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: logs
+              mountPath: /app/logs
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: logs
+          emptyDir: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: plane-env
+  namespace: plane
+data:
+  DJANGO_SETTINGS_MODULE: "plane.settings.production"
+  REDIS_URL: "redis://redis:6379/"
+  AWS_REGION: "us-east-1"
+  AWS_S3_ENDPOINT_URL: "http://minio:9000"
+  AWS_S3_BUCKET_NAME: "uploads"
+  USE_MINIO: "1"
+  FILE_SIZE_LIMIT: "5242880"
+  CORS_ALLOWED_ORIGINS: "https://raspberrypi-1.tailddc8f7.ts.net:10005"
+  WEB_URL: "https://raspberrypi-1.tailddc8f7.ts.net:10005"
+  MEDIA_URL: "https://raspberrypi-1.tailddc8f7.ts.net:10005/uploads/"
+  DEBUG: "0"
+  SENTRY_DSN: ""
+  EMAIL_BACKEND: "django.core.mail.backends.dummy.EmailBackend"
+  SITE_ID: "1"
+  GUNICORN_WORKERS: "2"
+  ENABLE_MAGIC_LINK_LOGIN: "0"
+  ENABLE_EMAIL_PASSWORD: "1"

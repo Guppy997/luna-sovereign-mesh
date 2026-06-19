@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: luna-sovereign-mesh-appflowy
+  name: luna-sovereign-mesh-plane
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,10 +10,10 @@ spec:
   source:
     repoURL: https://github.com/Guppy997/luna-sovereign-mesh.git
     targetRevision: main
-    path: clusters/dev/apps/appflowy/manifests
+    path: clusters/dev/apps/plane/manifests
   destination:
     name: luna-sovereign-mesh
-    namespace: appflowy
+    namespace: plane
   ignoreDifferences:
     - group: external-secrets.io
       kind: ExternalSecret

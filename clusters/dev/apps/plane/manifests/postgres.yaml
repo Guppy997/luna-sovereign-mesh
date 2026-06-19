@@ -1,29 +1,20 @@
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: postgresql-init
-  namespace: appflowy
-data:
-  01-vector.sql: |
-    CREATE EXTENSION IF NOT EXISTS vector;
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgresql-data
-  namespace: appflowy
+  namespace: plane
 spec:
   accessModes: [ReadWriteOnce]
   storageClassName: local-path
   resources:
     requests:
-      storage: 3Gi
+      storage: 5Gi
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: postgresql
-  namespace: appflowy
+  namespace: plane
 spec:
   selector:
     app: postgresql
@@ -35,7 +26,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgresql
-  namespace: appflowy
+  namespace: plane
 spec:
   serviceName: postgresql
   replicas: 1
@@ -57,9 +48,7 @@ spec:
           command:
             - sh
             - -c
-            - |
-              chown 999:999 /pgdata
-              chmod 700 /pgdata
+            - chown 999:999 /pgdata && chmod 700 /pgdata
           securityContext:
             runAsUser: 0
             allowPrivilegeEscalation: false
@@ -78,17 +67,17 @@ spec:
               mountPath: /pgdata
       containers:
         - name: postgresql
-          image: pgvector/pgvector:0.8.2-pg16
+          image: postgres:16-alpine
           env:
             - name: POSTGRES_DB
-              value: appflowy
+              value: plane
             - name: POSTGRES_USER
-              value: postgres
+              value: plane
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: appflowy-secrets
-                  key: pg-password
+                  name: plane-secrets
+                  key: db-password
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
           ports:
@@ -102,20 +91,20 @@ spec:
               drop: [ALL]
           livenessProbe:
             exec:
-              command: [pg_isready, -U, postgres, -d, appflowy]
+              command: [pg_isready, -U, plane, -d, plane]
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 5
           readinessProbe:
             exec:
-              command: [pg_isready, -U, postgres, -d, appflowy]
+              command: [pg_isready, -U, plane, -d, plane]
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 3
           resources:
             requests:
-              cpu: 100m
+              cpu: 50m
               memory: 128Mi
             limits:
               memory: 512Mi
@@ -126,9 +115,6 @@ spec:
               mountPath: /var/run/postgresql
             - name: tmp
               mountPath: /tmp
-            - name: initdb
-              mountPath: /docker-entrypoint-initdb.d
-              readOnly: true
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -137,6 +123,3 @@ spec:
           emptyDir: {}
         - name: tmp
           emptyDir: {}
-        - name: initdb
-          configMap:
-            name: postgresql-init

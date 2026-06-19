@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: redis
-  namespace: appflowy
+  namespace: plane
 spec:
   selector:
     app: redis
@@ -14,7 +14,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis
-  namespace: appflowy
+  namespace: plane
 spec:
   replicas: 1
   selector:
@@ -28,13 +28,13 @@ spec:
       securityContext:
         seccompProfile:
           type: RuntimeDefault
-        runAsUser: 0
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
       containers:
         - name: redis
-          image: redis:7
-          # Run server directly — skip entrypoint's gosu user-switch since it
-          # would need SETUID capability; persistence off (homelab cache only)
-          command: ["redis-server", "--save", "", "--appendonly", "no"]
+          image: redis:7-alpine
+          command: [redis-server, --save, "", --appendonly, "no"]
           ports:
             - containerPort: 6379
           securityContext:
@@ -42,29 +42,15 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
-          livenessProbe:
-            exec:
-              command: [redis-cli, ping]
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          readinessProbe:
-            exec:
-              command: [redis-cli, ping]
-            initialDelaySeconds: 5
-            periodSeconds: 5
           resources:
             requests:
-              cpu: 50m
+              cpu: 10m
               memory: 32Mi
             limits:
               memory: 128Mi
           volumeMounts:
-            - name: data
-              mountPath: /data
             - name: tmp
               mountPath: /tmp
       volumes:
-        - name: data
-          emptyDir: {}
         - name: tmp
           emptyDir: {}
