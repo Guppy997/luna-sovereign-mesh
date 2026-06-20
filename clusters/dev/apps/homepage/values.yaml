@@ -121,7 +121,7 @@ config:
             icon: mdi-chart-timeline-variant-#1f2d3d
             namespace: plane
             app: plane-api
-            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10005/api/
+            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10005
         - Vaultwarden:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10006
             description: Passwort-Manager (Bitwarden-kompatibel)
