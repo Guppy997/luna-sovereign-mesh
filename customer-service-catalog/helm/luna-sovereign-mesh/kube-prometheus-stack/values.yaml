@@ -30,13 +30,13 @@ kube-prometheus-stack:
         - raspberrypi-1.tailddc8f7.ts.net
 
     prometheusSpec:
-      retention: 5d
-      retentionSize: 384MB
+      retention: 1d
+      retentionSize: 256MB
       resources:
         requests:
-          memory: 400Mi
+          memory: 256Mi
         limits:
-          memory: 800Mi
+          memory: 512Mi
       serviceMonitorSelector:
         matchLabels:
           monitoring.instance: luna-sovereign-mesh-dev
