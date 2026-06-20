@@ -68,6 +68,24 @@ spec:
       containers:
         - name: postgresql
           image: postgres:16-alpine
+          args:
+            - postgres
+            - -c
+            - shared_buffers=256MB
+            - -c
+            - effective_cache_size=1GB
+            - -c
+            - work_mem=16MB
+            - -c
+            - maintenance_work_mem=64MB
+            - -c
+            - max_connections=25
+            - -c
+            - random_page_cost=1.1
+            - -c
+            - effective_io_concurrency=200
+            - -c
+            - checkpoint_completion_target=0.9
           env:
             - name: POSTGRES_DB
               value: plane
@@ -105,9 +123,9 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 128Mi
+              memory: 256Mi
             limits:
-              memory: 512Mi
+              memory: 768Mi
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
