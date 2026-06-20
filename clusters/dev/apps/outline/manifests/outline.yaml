@@ -33,7 +33,7 @@ spec:
           image: outlinewiki/outline:latest
           env:
             - name: NODE_ENV
-              value: "production"
+              value: "development"
             - name: URL
               value: "https://raspberrypi-1.tailddc8f7.ts.net:10007"
             - name: PORT
