@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  # Name "adapter" — die PWA-nginx proxyt /api/ -> http://adapter:3001/
+  name: adapter
+  namespace: luna-pwa
+  labels:
+    app.kubernetes.io/name: luna-adapter
+    app.kubernetes.io/part-of: luna-pwa
+spec:
+  selector:
+    app.kubernetes.io/name: luna-adapter
+  ports:
+    - name: http
+      port: 3001
+      targetPort: http

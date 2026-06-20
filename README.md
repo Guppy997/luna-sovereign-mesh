@@ -27,11 +27,21 @@ Kubernetes Cluster (k3s, ARM64)
 ├── Kyverno          — Policy engine + policy reporter
 ├── Loki             — Log aggregation
 ├── kube-prometheus  — Metrics, dashboards & alerting
-└── Homepage         — Self-hosted service dashboard (entry point)
+├── Homepage         — Self-hosted service dashboard (entry point)
+│
+├── Productivity
+│   ├── Plane        — Project management (Jira alternative)
+│   ├── Outline      — Wiki & notes (GitHub OAuth)
+│   └── Vaultwarden  — Password manager (Bitwarden-compatible)
+│
+└── AI Stack
+    ├── Luna Dashboard — Custom PWA frontend for OpenClaw
+    └── OpenClaw       — AI assistant backend (Oracle Cloud, via Tailscale)
 
 Host services (outside Kubernetes)
 ├── Pi-hole + Unbound — Network-wide DNS filtering + recursive resolver
-└── Tailscale         — Zero-trust mesh VPN: the only way in
+├── Tailscale         — Zero-trust mesh VPN: the only way in
+└── systemd timer     — Daily USB backup (secrets, DBs, file uploads)
 ```
 
 ## Security Design
@@ -159,19 +169,48 @@ On a single-node Pi there is no redundancy — a CNI crash takes the entire clus
 | Raspberry Pi migration | Done |
 | Zero-trust network hardening (tailnet-only access) | Done |
 | Kyverno policies from audit to enforce mode | Done |
-| AI inference (Luna) deployment | In Progress |
-| PWA Frontend deployment | In Progress |
+| AI inference (Luna) deployment | Done |
+| PWA Frontend (Luna Dashboard) | Done |
+| Productivity stack (Plane, Outline, Vaultwarden) | Done |
+| Daily USB backup | Done |
 
 ## Running Services
 
 All services are reachable exclusively from inside the tailnet, routed by Traefik via host-based rules on the node's MagicDNS name.
 
-| Service | Access | Notes |
+| Service | Port | Notes |
 |---|---|---|
-| Homepage | `http://<node>.<tailnet>.ts.net/` | Dashboard & entry point for all services |
+| Homepage | `https://…:10000` (root) | Dashboard & entry point for all services |
+| Lern-PWA | `https://…:10000` | Focus timer & learning projects (self-built PWA) |
+| ArgoCD | `…/argocd` | GitOps operator |
+| Traefik Dashboard | `…/dashboard/` | Ingress controller |
+| Pi-hole | `https://…:10002/admin` | DNS + ad blocking, runs on the host |
+| ntfy | `https://…:10003` | Self-hosted push notifications (no FCM), fed by Alertmanager |
+| Luna Dashboard | `https://…:10004` | AI assistant frontend (OpenClaw PWA) |
+| Plane | `https://…:10005` | Project management (Jira alternative) |
+| Vaultwarden | `https://…:10006` | Password manager (Bitwarden-compatible) |
+| Outline | `https://…:10007` | Team wiki & notes |
 | Grafana | `…/grafana` | Monitoring dashboards |
-| Argo CD | `…/argocd` | GitOps operator |
-| Alertmanager, Prometheus, Policy Reporter | tailnet ingress | Monitoring & policy backends |
-| Pi-hole | Tailscale Serve (HTTPS) | DNS + ad blocking, runs on the host |
-| ntfy | Tailscale Serve (HTTPS, `:10003`) | Self-hosted alert push notifications (no FCM), fed by Alertmanager |
+| Prometheus | `…/prometheus` | Metrics & alerting |
+| Alertmanager | `…/alertmanager` | Alert routing |
+| Kyverno Policy Reporter | `…/policy-reporter` | Policy dashboard |
 | Loki | ClusterIP only | Log aggregation, no external access |
+
+## Backup
+
+A daily systemd timer runs at 03:00 on the Pi host and writes to a USB stick mounted at `/mnt/backup` (57 GB exFAT, auto-mounted via `/etc/fstab`).
+
+| What | How | Kept |
+|---|---|---|
+| All Kubernetes secrets | `kubectl get secrets -A -o yaml` | 90 days |
+| PostgreSQL databases | `pg_dump` via `kubectl exec` (plane + outline) | 90 days |
+| Vaultwarden data | Direct copy from k3s PV (`db.sqlite3` + attachments) | 90 days |
+| MinIO file uploads | Direct copy from k3s PV | 90 days |
+
+Each daily snapshot is ~10 MB. At 90-day retention the USB stick holds roughly 900 MB of backup data.
+
+Script: `/usr/local/bin/kubara-backup.sh` — Log: `/mnt/backup/kubara-backup/backup.log`
+
+### What is NOT backed up here
+
+Everything in this Git repository is the backup for the cluster configuration — encrypted secrets, manifests, Helm values. The USB stick covers only the runtime state that Git cannot capture (live database contents, uploaded files, secret values).
