@@ -2,6 +2,10 @@ traefik:
   deployment:
     imagePullSecrets:
       - name: image-pull-secret
+  # Tailscale terminates TLS and forwards HTTP with X-Forwarded-Proto: https.
+  # Without this, Traefik overwrites the header and apps behind it can't detect HTTPS.
+  additionalArguments:
+    - "--entrypoints.web.forwardedHeaders.insecure"
   service:
     spec:
       # NodePorts schließen — Zugriff nur über LB-IP (LAN-seitig durch
