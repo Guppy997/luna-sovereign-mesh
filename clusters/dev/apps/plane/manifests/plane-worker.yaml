@@ -59,7 +59,7 @@ spec:
             - name: tmp
               mountPath: /tmp
             - name: logs
-              mountPath: /app/logs
+              mountPath: /code/plane/logs
             - name: run
               mountPath: /run
       volumes:
@@ -91,7 +91,13 @@ spec:
       containers:
         - name: plane-beat
           image: makeplane/plane-backend:latest
-          command: ["./bin/docker-entrypoint-beat.sh"]
+          command:
+            - sh
+            - -c
+            - |
+              python manage.py wait_for_db
+              python manage.py wait_for_migrations
+              celery -A plane beat -l info -s /tmp/celerybeat-schedule
           envFrom:
             - configMapRef:
                 name: plane-env
@@ -131,7 +137,7 @@ spec:
             - name: tmp
               mountPath: /tmp
             - name: logs
-              mountPath: /app/logs
+              mountPath: /code/plane/logs
             - name: run
               mountPath: /run
       volumes:

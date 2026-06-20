@@ -31,24 +31,25 @@ spec:
       containers:
         - name: plane-web
           image: makeplane/plane-frontend:latest
+          command: ["node", "/app/web/server.js"]
           env:
             - name: NEXT_PUBLIC_API_BASE_URL
               value: "https://raspberrypi-1.tailddc8f7.ts.net:10005"
-            - name: NEXT_PUBLIC_DEPLOY_URL
-              value: "https://raspberrypi-1.tailddc8f7.ts.net:10005/spaces"
-            - name: NEXT_PUBLIC_ENABLE_OAUTH
-              value: "0"
-            - name: NEXT_PUBLIC_ENABLE_SENTRY
-              value: "0"
-            - name: NEXT_PUBLIC_ENABLE_PAGE_FAVIOCN
-              value: "0"
+            - name: NEXT_PUBLIC_WEB_BASE_URL
+              value: "https://raspberrypi-1.tailddc8f7.ts.net:10005"
+            - name: NEXT_PUBLIC_SPACE_BASE_URL
+              value: "https://raspberrypi-1.tailddc8f7.ts.net:10005"
+            - name: NEXT_PUBLIC_SPACE_BASE_PATH
+              value: "/spaces"
+            - name: NEXT_TELEMETRY_DISABLED
+              value: "1"
           ports:
             - containerPort: 3000
           readinessProbe:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 20
+            initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 6
@@ -56,7 +57,7 @@ spec:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 40
+            initialDelaySeconds: 60
             periodSeconds: 15
             timeoutSeconds: 5
           securityContext:
@@ -73,12 +74,12 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
-            - name: cache
-              mountPath: /app/.next/cache
+            - name: web-cache
+              mountPath: /app/web/.next/cache
       volumes:
         - name: tmp
           emptyDir: {}
-        - name: cache
+        - name: web-cache
           emptyDir: {}
 ---
 apiVersion: v1
@@ -114,13 +115,14 @@ spec:
       containers:
         - name: plane-space
           image: makeplane/plane-space:latest
+          command: ["node", "/app/space/server.js"]
           env:
             - name: NEXT_PUBLIC_API_BASE_URL
               value: "https://raspberrypi-1.tailddc8f7.ts.net:10005"
-            - name: NEXT_PUBLIC_DEPLOY_URL
-              value: "https://raspberrypi-1.tailddc8f7.ts.net:10005/spaces"
-            - name: NEXT_PUBLIC_ENABLE_SENTRY
-              value: "0"
+            - name: NEXT_PUBLIC_SPACE_BASE_PATH
+              value: "/spaces"
+            - name: NEXT_TELEMETRY_DISABLED
+              value: "1"
           ports:
             - containerPort: 3000
           securityContext:
@@ -137,10 +139,10 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
-            - name: cache
-              mountPath: /app/.next/cache
+            - name: space-cache
+              mountPath: /app/space/.next/cache
       volumes:
         - name: tmp
           emptyDir: {}
-        - name: cache
+        - name: space-cache
           emptyDir: {}

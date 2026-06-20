@@ -88,7 +88,7 @@ spec:
             - name: tmp
               mountPath: /tmp
             - name: logs
-              mountPath: /app/logs
+              mountPath: /code/plane/logs
       containers:
         - name: plane-api
           image: makeplane/plane-backend:latest
@@ -120,16 +120,14 @@ spec:
           ports:
             - containerPort: 8000
           readinessProbe:
-            httpGet:
-              path: /api/
+            tcpSocket:
               port: 8000
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 6
           livenessProbe:
-            httpGet:
-              path: /api/
+            tcpSocket:
               port: 8000
             initialDelaySeconds: 40
             periodSeconds: 15
@@ -150,7 +148,7 @@ spec:
             - name: tmp
               mountPath: /tmp
             - name: logs
-              mountPath: /app/logs
+              mountPath: /code/plane/logs
             - name: run
               mountPath: /run
       volumes:
@@ -184,3 +182,4 @@ data:
   GUNICORN_WORKERS: "2"
   ENABLE_MAGIC_LINK_LOGIN: "0"
   ENABLE_EMAIL_PASSWORD: "1"
+  AMQP_URL: "redis://redis:6379/"
