@@ -122,6 +122,13 @@ config:
             namespace: plane
             app: plane-api
             siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10005
+        - Outline:
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10007
+            description: Wiki & Notizen
+            icon: mdi-notebook-outline-#000000
+            namespace: outline
+            app: outline
+            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10007/_health
         - Vaultwarden:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10006
             description: Passwort-Manager (Bitwarden-kompatibel)
