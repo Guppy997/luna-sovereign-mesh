@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: plane-admin
+  namespace: plane
+spec:
+  selector:
+    app: plane-admin
+  ports:
+    - port: 3000
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plane-admin
+  namespace: plane
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plane-admin
+  template:
+    metadata:
+      labels:
+        app: plane-admin
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: plane-admin
+          image: makeplane/plane-admin:latest
+          command: ["node", "/app/admin/server.js"]
+          env:
+            - name: NEXT_PUBLIC_API_BASE_URL
+              value: "https://raspberrypi-1.tailddc8f7.ts.net:10005"
+            - name: NEXT_PUBLIC_ADMIN_BASE_URL
+              value: "https://raspberrypi-1.tailddc8f7.ts.net:10005"
+            - name: NEXT_PUBLIC_ADMIN_BASE_PATH
+              value: "/god-mode"
+            - name: NEXT_PUBLIC_SPACE_BASE_URL
+              value: "https://raspberrypi-1.tailddc8f7.ts.net:10005"
+            - name: NEXT_PUBLIC_SPACE_BASE_PATH
+              value: "/spaces"
+            - name: NEXT_PUBLIC_WEB_BASE_URL
+              value: "https://raspberrypi-1.tailddc8f7.ts.net:10005"
+            - name: NEXT_TELEMETRY_DISABLED
+              value: "1"
+          ports:
+            - containerPort: 3000
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 25m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: admin-cache
+              mountPath: /app/admin/.next/cache
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: admin-cache
+          emptyDir: {}

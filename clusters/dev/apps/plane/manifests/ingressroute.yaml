@@ -31,6 +31,13 @@ spec:
         - name: plane-space
           port: 3000
           passHostHeader: false
+    - match: HeaderRegexp(`X-Forwarded-Host`, `.+:10005`) && PathPrefix(`/god-mode/`)
+      kind: Rule
+      priority: 150
+      services:
+        - name: plane-admin
+          port: 3000
+          passHostHeader: false
     - match: HeaderRegexp(`X-Forwarded-Host`, `.+:10005`) && PathPrefix(`/`)
       kind: Rule
       priority: 100
