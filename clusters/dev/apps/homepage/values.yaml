@@ -122,13 +122,13 @@ config:
             namespace: plane
             app: plane-api
             siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10005
-        - Outline:
+        - AFFiNE:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10007
-            description: Wiki & Notizen
-            icon: mdi-notebook-outline-#000000
-            namespace: outline
-            app: outline
-            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10007/_health
+            description: Wiki & Notizen (lokal, mit Sync)
+            icon: affine.png
+            namespace: affine
+            app: affine
+            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10007/api/health
         - Vaultwarden:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10006
             description: Passwort-Manager (Bitwarden-kompatibel)
