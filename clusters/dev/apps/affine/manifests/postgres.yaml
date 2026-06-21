@@ -67,7 +67,7 @@ spec:
               mountPath: /pgdata
       containers:
         - name: postgres
-          image: postgres:16-alpine
+          image: pgvector/pgvector:pg16
           env:
             - name: POSTGRES_DB
               value: affine
@@ -92,7 +92,7 @@ spec:
           livenessProbe:
             exec:
               command: [pg_isready, -U, affine, -d, affine]
-            initialDelaySeconds: 30
+            initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 5

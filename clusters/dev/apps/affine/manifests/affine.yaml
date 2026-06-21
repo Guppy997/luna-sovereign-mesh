@@ -46,10 +46,7 @@ spec:
           command:
             - sh
             - -c
-            - |
-              until nc -z postgres.affine.svc.cluster.local 5432; do
-                echo "Waiting for postgres..."; sleep 3
-              done
+            - until nc -z postgres.affine.svc.cluster.local 5432; do echo "waiting for postgres..."; sleep 3; done
           securityContext:
             runAsUser: 65534
             allowPrivilegeEscalation: false
@@ -62,12 +59,42 @@ spec:
               memory: 8Mi
             limits:
               memory: 32Mi
+        - name: migrate
+          image: ghcr.io/toeverything/affine:stable
+          command: [node, ./scripts/self-host-predeploy.js]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: affine-secrets
+                  key: database-url
+            - name: REDIS_SERVER_HOST
+              value: redis.affine.svc.cluster.local
+            - name: REDIS_SERVER_PORT
+              value: "6379"
+            - name: NODE_ENV
+              value: production
+            - name: AFFINE_CONFIG_PATH
+              value: /root/.affine/config
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: storage
+              mountPath: /root/.affine
+            - name: tmp
+              mountPath: /tmp
       containers:
         - name: affine
-          image: ghcr.io/toeverything/affine-graphql:stable
+          image: ghcr.io/toeverything/affine:stable
           env:
-            - name: NODE_OPTIONS
-              value: "--import=./scripts/register.js"
             - name: NODE_ENV
               value: production
             - name: AFFINE_CONFIG_PATH
@@ -81,6 +108,12 @@ spec:
               value: redis.affine.svc.cluster.local
             - name: REDIS_SERVER_PORT
               value: "6379"
+            - name: AFFINE_SERVER_EXTERNAL_URL
+              value: "https://raspberrypi-1.tailddc8f7.ts.net:10007"
+            - name: AFFINE_SERVER_HTTPS
+              value: "false"
+            - name: AFFINE_INDEXER_ENABLED
+              value: "false"
             - name: AFFINE_ADMIN_EMAIL
               valueFrom:
                 secretKeyRef:
