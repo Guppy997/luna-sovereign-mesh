@@ -1,0 +1,28 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: affine-https-header
+  namespace: affine
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: "https"
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: affine
+  namespace: affine
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: HeaderRegexp(`X-Forwarded-Host`, `.+:10007`)
+      kind: Rule
+      priority: 100
+      middlewares:
+        - name: affine-https-header
+      services:
+        - name: affine
+          port: 3010
+          passHostHeader: false

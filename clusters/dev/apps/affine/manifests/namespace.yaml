@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: affine
+  labels:
+    project-name: luna-sovereign-mesh
+    stage: dev
