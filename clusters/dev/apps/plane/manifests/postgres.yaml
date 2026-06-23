@@ -79,7 +79,7 @@ spec:
             - -c
             - maintenance_work_mem=64MB
             - -c
-            - max_connections=25
+            - max_connections=100
             - -c
             - random_page_cost=1.1
             - -c
@@ -123,9 +123,9 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 256Mi
+              memory: 384Mi
             limits:
-              memory: 768Mi
+              memory: 1Gi
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
