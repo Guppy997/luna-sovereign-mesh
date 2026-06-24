@@ -96,10 +96,7 @@ config:
           showLabel: true
           label: "raspberry pi"
         nodes:
-          show: true
-          cpu: true
-          memory: true
-          showLabel: true
+          show: false
     - resources:
         backend: kubernetes
         expanded: true
@@ -188,6 +185,7 @@ config:
               url: http://beszel.beszel.svc.cluster.local:8090
               username: yourname@your-domain.de
               password: "{{HOMEPAGE_VAR_BESZEL_PASSWORD}}"
+              version: 2
               systemId: 2lk6992hxaywdvd
         - Grafana:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10001/grafana
