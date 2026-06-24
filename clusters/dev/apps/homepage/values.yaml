@@ -35,6 +35,11 @@ env:
       secretKeyRef:
         name: openclaw-dashboard-token
         key: token
+  - name: HOMEPAGE_VAR_BESZEL_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: beszel-homepage-credentials
+        key: password
 
 persistence:
   logs:
@@ -80,7 +85,7 @@ config:
         columns: 4
       Monitoring:
         style: row
-        columns: 3
+        columns: 4
 
   widgets:
     - kubernetes:
@@ -171,6 +176,19 @@ config:
             app: cert-manager
 
     - Monitoring:
+        - Beszel:
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10008
+            description: Server Monitoring (CPU, RAM, Disk, Temp)
+            icon: beszel.png
+            namespace: beszel
+            app: beszel
+            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10008/api/health
+            widget:
+              type: beszel
+              url: http://beszel.beszel.svc.cluster.local:8090
+              username: yourname@your-domain.de
+              password: "{{HOMEPAGE_VAR_BESZEL_PASSWORD}}"
+              systemId: 2lk6992hxaywdvd
         - Grafana:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10001/grafana
             description: Monitoring Dashboards
