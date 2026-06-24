@@ -19,6 +19,7 @@ spec:
       containers:
         - name: plane-worker
           image: makeplane/plane-backend:latest
+          imagePullPolicy: IfNotPresent
           command:
             - sh
             - -c
@@ -97,6 +98,7 @@ spec:
       containers:
         - name: plane-beat
           image: makeplane/plane-backend:latest
+          imagePullPolicy: IfNotPresent
           command:
             - sh
             - -c

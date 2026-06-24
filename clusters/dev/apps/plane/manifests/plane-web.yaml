@@ -31,6 +31,7 @@ spec:
       containers:
         - name: plane-web
           image: makeplane/plane-frontend:latest
+          imagePullPolicy: IfNotPresent
           command: ["node", "/app/web/server.js"]
           env:
             - name: NEXT_PUBLIC_API_BASE_URL
@@ -115,6 +116,7 @@ spec:
       containers:
         - name: plane-space
           image: makeplane/plane-space:latest
+          imagePullPolicy: IfNotPresent
           command: ["node", "/app/space/server.js"]
           env:
             - name: NEXT_PUBLIC_API_BASE_URL

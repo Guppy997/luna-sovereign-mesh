@@ -31,6 +31,7 @@ spec:
       containers:
         - name: plane-admin
           image: makeplane/plane-admin:latest
+          imagePullPolicy: IfNotPresent
           command: ["node", "/app/admin/server.js"]
           env:
             - name: NEXT_PUBLIC_API_BASE_URL

@@ -48,6 +48,7 @@ spec:
               memory: 32Mi
         - name: migrate
           image: makeplane/plane-backend:latest
+          imagePullPolicy: IfNotPresent
           command: ["./bin/docker-entrypoint-migrator.sh"]
           envFrom:
             - configMapRef:
@@ -92,6 +93,7 @@ spec:
       containers:
         - name: plane-api
           image: makeplane/plane-backend:latest
+          imagePullPolicy: IfNotPresent
           command: ["./bin/docker-entrypoint-api.sh"]
           envFrom:
             - configMapRef:
