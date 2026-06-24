@@ -26,7 +26,7 @@ ingress:
 
 env:
   - name: HOMEPAGE_ALLOWED_HOSTS
-    value: "luna-sovereign-mesh-dev.luna.local,raspberrypi-1.tailddc8f7.ts.net,raspberrypi-1.tailddc8f7.ts.net:10001,192.168.178.117,localhost,localhost:3000,homepage,homepage:3000,homepage.homepage.svc.cluster.local,homepage.homepage.svc.cluster.local:3000"
+    value: "luna-sovereign-mesh-dev.luna.local,raspberrypi-1.tailddc8f7.ts.net,raspberrypi-1.tailddc8f7.ts.net:10001,raspberrypi-1.tailddc8f7.ts.net:10009,192.168.178.117,localhost,localhost:3000,homepage,homepage:3000,homepage.homepage.svc.cluster.local,homepage.homepage.svc.cluster.local:3000"
   # OpenClaw-Gateway-Token für den Dashboard-Link (#token=). Kommt aus dem
   # ExternalSecret openclaw-dashboard-token-es → Secret openclaw-dashboard-token
   # (Master-Secret liegt manuell in der external-secrets-ns, NICHT in Git).
@@ -79,7 +79,7 @@ config:
     layout:
       Anwendungen:
         style: row
-        columns: 3
+        columns: 4
       Infrastruktur:
         style: row
         columns: 4
@@ -112,6 +112,13 @@ config:
 
   services:
     - Anwendungen:
+        - Beaver Habits:
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10009
+            description: Habit Tracker (täglich, PWA)
+            icon: mdi-check-circle-outline-#22c55e
+            namespace: beaverhabits
+            app: beaverhabits
+            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10009
         - Luna Dashboard:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10004
             description: KI-Mitarbeiterin (OpenClaw)

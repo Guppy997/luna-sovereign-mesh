@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: luna-sovereign-mesh-beaverhabits
+  namespace: argocd
+spec:
+  project: luna-sovereign-mesh
+  source:
+    repoURL: https://github.com/Guppy997/luna-sovereign-mesh.git
+    targetRevision: HEAD
+    path: clusters/dev/apps/beaverhabits/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: beaverhabits
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
