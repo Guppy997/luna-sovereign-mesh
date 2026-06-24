@@ -7,7 +7,7 @@
   "schedule": ["every weekend"],
   "labels": ["dependencies", "renovate"],
   "assignees": ["Guppy997"],
-  "enabledManagers": ["helmv3", "argocd", "docker-compose"],
+  "enabledManagers": ["helmv3", "argocd", "docker-compose", "kubernetes"],
   "helmv3": {
     "fileMatch": [
       "managed-service-catalog/helm/.+/Chart\\.yaml$",
@@ -22,11 +22,16 @@
   "docker-compose": {
     "fileMatch": ["\\.yml$", "\\.yaml$"]
   },
+  "kubernetes": {
+    "fileMatch": [
+      "clusters/dev/apps/.+/manifests/.+\\.yaml$"
+    ]
+  },
   "packageRules": [
     {
-      "description": "Auto-merge patch updates",
+      "description": "Auto-merge patch updates for Helm and k8s manifests",
       "matchUpdateTypes": ["patch"],
-      "matchManagers": ["helmv3", "argocd"],
+      "matchManagers": ["helmv3", "argocd", "kubernetes"],
       "automerge": true,
       "automergeType": "pr"
     },
@@ -39,6 +44,26 @@
       "description": "Group all kyverno updates",
       "matchPackageNames": ["kyverno", "kyverno-policies", "kyverno-policy-reporter"],
       "groupName": "kyverno"
+    },
+    {
+      "description": "Group all Plane updates together",
+      "matchPackagePatterns": ["makeplane/plane-.*"],
+      "groupName": "plane"
+    },
+    {
+      "description": "Group minio server + mc together",
+      "matchPackageNames": ["minio/minio", "minio/mc"],
+      "groupName": "minio"
+    },
+    {
+      "description": "Ignore AFFiNE stable tag (floating channel, no trackable version)",
+      "matchPackageNames": ["ghcr.io/toeverything/affine"],
+      "enabled": false
+    },
+    {
+      "description": "Ignore beszel latest tag (no semver release tags available)",
+      "matchPackageNames": ["docker.io/henrygd/beszel", "henrygd/beszel"],
+      "enabled": false
     }
   ]
 }
