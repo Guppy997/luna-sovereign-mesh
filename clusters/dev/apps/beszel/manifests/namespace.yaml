@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: beszel
+  labels:
+    project-name: "luna-sovereign-mesh"
+    stage: "dev"
