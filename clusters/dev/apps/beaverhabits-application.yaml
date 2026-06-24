@@ -4,7 +4,7 @@ metadata:
   name: luna-sovereign-mesh-beaverhabits
   namespace: argocd
 spec:
-  project: luna-sovereign-mesh
+  project: luna-sovereign-mesh-dev
   source:
     repoURL: https://github.com/Guppy997/luna-sovereign-mesh.git
     targetRevision: HEAD

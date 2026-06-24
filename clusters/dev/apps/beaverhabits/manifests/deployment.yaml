@@ -70,7 +70,6 @@ spec:
             timeoutSeconds: 5
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
           resources:
