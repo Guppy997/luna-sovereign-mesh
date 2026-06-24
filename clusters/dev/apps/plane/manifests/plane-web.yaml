@@ -30,7 +30,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: plane-web
-          image: makeplane/plane-frontend:v1.3.1
+          image: makeplane/plane-frontend:latest
           command: ["node", "/app/web/server.js"]
           env:
             - name: NEXT_PUBLIC_API_BASE_URL
@@ -114,7 +114,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: plane-space
-          image: makeplane/plane-space:v1.3.1
+          image: makeplane/plane-space:latest
           command: ["node", "/app/space/server.js"]
           env:
             - name: NEXT_PUBLIC_API_BASE_URL

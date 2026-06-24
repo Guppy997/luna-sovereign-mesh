@@ -47,7 +47,7 @@ spec:
             limits:
               memory: 32Mi
         - name: migrate
-          image: makeplane/plane-backend:v1.3.1
+          image: makeplane/plane-backend:latest
           command: ["./bin/docker-entrypoint-migrator.sh"]
           envFrom:
             - configMapRef:
@@ -91,7 +91,7 @@ spec:
               mountPath: /code/plane/logs
       containers:
         - name: plane-api
-          image: makeplane/plane-backend:v1.3.1
+          image: makeplane/plane-backend:latest
           command: ["./bin/docker-entrypoint-api.sh"]
           envFrom:
             - configMapRef:
@@ -151,12 +151,16 @@ spec:
               mountPath: /code/plane/logs
             - name: run
               mountPath: /run
+            - name: static-assets
+              mountPath: /code/plane/static-assets
       volumes:
         - name: tmp
           emptyDir: {}
         - name: logs
           emptyDir: {}
         - name: run
+          emptyDir: {}
+        - name: static-assets
           emptyDir: {}
 ---
 apiVersion: v1

@@ -46,14 +46,19 @@
       "groupName": "kyverno"
     },
     {
-      "description": "Group all Plane updates together",
+      "description": "Ignore Plane images: latest tag only, versioned images have incompatible architecture changes",
       "matchPackagePatterns": ["makeplane/plane-.*"],
-      "groupName": "plane"
+      "enabled": false
     },
     {
       "description": "Group minio server + mc together",
       "matchPackageNames": ["minio/minio", "minio/mc"],
       "groupName": "minio"
+    },
+    {
+      "description": "Ignore minio/minio: data format changes between major versions can break existing data",
+      "matchPackageNames": ["minio/minio"],
+      "enabled": false
     },
     {
       "description": "Ignore AFFiNE stable tag (floating channel, no trackable version)",
