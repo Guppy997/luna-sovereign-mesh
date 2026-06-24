@@ -30,7 +30,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: plane-admin
-          image: makeplane/plane-admin:latest
+          image: makeplane/plane-admin@sha256:145ec9debb05d6e7704942edd4077c8246574270a9f6be9945eb1e9e9b297418
           imagePullPolicy: IfNotPresent
           command: ["node", "/app/admin/server.js"]
           env:

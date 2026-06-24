@@ -18,7 +18,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: plane-worker
-          image: makeplane/plane-backend:latest
+          image: makeplane/plane-backend@sha256:a8b3ee5ad6a4f3d952d4537f679f5a684f6e54b0868f30db097ce8722676251f
           imagePullPolicy: IfNotPresent
           command:
             - sh
@@ -97,7 +97,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: plane-beat
-          image: makeplane/plane-backend:latest
+          image: makeplane/plane-backend@sha256:a8b3ee5ad6a4f3d952d4537f679f5a684f6e54b0868f30db097ce8722676251f
           imagePullPolicy: IfNotPresent
           command:
             - sh

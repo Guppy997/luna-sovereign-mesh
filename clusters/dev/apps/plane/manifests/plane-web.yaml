@@ -30,7 +30,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: plane-web
-          image: makeplane/plane-frontend:latest
+          image: makeplane/plane-frontend@sha256:30734d16d457d2e2f942debeba0bb4721ff70388f970257cfd7f11e02082aaa5
           imagePullPolicy: IfNotPresent
           command: ["node", "/app/web/server.js"]
           env:
@@ -115,7 +115,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: plane-space
-          image: makeplane/plane-space:latest
+          image: makeplane/plane-space@sha256:f6a80221cbe2416e8115b0263e62b394914ffca9b4ff1d274f23bc555733a2c3
           imagePullPolicy: IfNotPresent
           command: ["node", "/app/space/server.js"]
           env:
