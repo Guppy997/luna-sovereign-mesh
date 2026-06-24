@@ -102,6 +102,7 @@ config:
         expanded: true
         cpu: true
         memory: true
+        cputemp: true
     - search:
         provider: duckduckgo
         target: _blank
