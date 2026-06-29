@@ -185,7 +185,7 @@ data:
   SENTRY_DSN: ""
   EMAIL_BACKEND: "django.core.mail.backends.dummy.EmailBackend"
   SITE_ID: "1"
-  GUNICORN_WORKERS: "6"
+  GUNICORN_WORKERS: "3"
   ENABLE_MAGIC_LINK_LOGIN: "0"
   ENABLE_EMAIL_PASSWORD: "1"
   AMQP_URL: "redis://redis:6379/"
