@@ -3,7 +3,7 @@
 **Date:** 2026-06-20
 **Duration:** ~20 minutes (23:08–23:28 active degradation; recovery in-session)
 **Severity:** High — cluster near-freeze; D-Bus collapsed; most pods crash-looped; SSH sessions broken
-**Status:** Mitigated (root cause hardware — permanent fix pending)
+**Status:** Resolved — see [2026-06-29-cooling-upgrade-resource-optimisation.md](2026-06-29-cooling-upgrade-resource-optimisation.md)
 
 ## Summary
 
@@ -135,8 +135,8 @@ cat /proc/loadavg       # 1-min should be < 4 on a 4-core Pi at normal operation
 
 ## Follow-ups
 
-- [ ] **Hardware:** Install enclosure with active cooling (fan + heatsink) — primary fix for this incident
-- [ ] Re-enable Prometheus, Loki, Kyverno after cooling hardware installed
-- [ ] Add temperature to ntfy alert rules once Prometheus is back (alert if temp > 75 °C for > 5 min)
+- [x] **Hardware:** Install enclosure with active cooling — done 2026-06-29 (3D-printed case + Noctua A6x25, 85 °C → 43.9 °C)
+- [x] Re-enable Prometheus, Loki, Kyverno after cooling hardware installed — done 2026-06-29
+- [ ] Add temperature to ntfy alert rules once Prometheus is back (alert if temp > 70 °C for > 5 min)
 - [ ] Investigate policy-reporter SQLite UNIQUE constraint bug — either patch values or open upstream issue
 - [ ] Consider swap usage as an alert threshold in Prometheus (e.g., alert if swap > 80 % for > 10 min)
