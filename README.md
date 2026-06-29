@@ -151,6 +151,10 @@ honestly because a single-node homelab is exactly where you learn this:
   (proactive tuning after OOM postmortem: ~750Mi RSS against 800Mi limit with no size cap; 3-line GitOps fix, deployed without downtime)
 - [2026-06-16 — Forced reboot → kubara network crash & silent state corruption](docs/incidents/2026-06-16-forced-reboot-network-recovery.md)
   (CNI race condition on restart; DNS integration and Pi-hole blocking silently broken; why automated recovery is a deliberate non-goal on single-node hardware)
+- [2026-06-20 — Thermal throttling → K3s API freeze → cascade pod crashloop](docs/incidents/2026-06-20-thermal-throttle-cascade-crashloop.md)
+  (85.6 °C SoC temp, CPU throttled, all pods lost API connectivity simultaneously; Prometheus/Loki/Kyverno temporarily disabled as mitigation — resolved 2026-06-29)
+- [2026-06-29 — Cooling upgrade + resource optimisation](docs/incidents/2026-06-29-cooling-upgrade-resource-optimisation.md)
+  (3D-printed enclosure + Noctua A6x25 fan: 85 °C → 43.9 °C; all services re-enabled; Plane and Prometheus memory requests tuned for single-user homelab use)
 
 ### On running production tooling on a single Pi
 
