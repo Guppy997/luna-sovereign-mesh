@@ -9,6 +9,13 @@ kube-prometheus-stack:
         memory: 100Mi
       limits:
         memory: 200Mi
+    prometheusConfigReloader:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 64Mi
     serviceMonitor:
       additionalLabels:
         monitoring.instance: luna-sovereign-mesh-dev
@@ -34,7 +41,7 @@ kube-prometheus-stack:
       retentionSize: 256MB
       resources:
         requests:
-          memory: 256Mi
+          memory: 64Mi
         limits:
           memory: 512Mi
       serviceMonitorSelector:
