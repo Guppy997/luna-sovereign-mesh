@@ -93,6 +93,15 @@ All pods:     Running / Completed — 0 failures
 
 - [x] Hardware: Install enclosure with active cooling — **done 2026-06-29**
 - [x] Re-enable Prometheus, Loki, Kyverno — **done 2026-06-29**
-- [ ] Add temperature to ntfy alert rules (alert if temp > 70 °C for > 5 min) — still open
+- [x] Add temperature to ntfy alert rules (alert if temp > 70 °C for > 5 min) — done 2026-06-29 (`PiTemperatureHigh`)
 - [ ] Investigate policy-reporter SQLite UNIQUE constraint bug — still open
-- [ ] Add swap usage as Prometheus alert threshold (> 80 % for > 10 min) — still open
+- [x] Add swap usage as Prometheus alert threshold (> 80 % for > 10 min) — done 2026-06-29 (`PiSwapHigh`)
+
+## Monitoring Alerts Added (2026-06-29, Commit 86fa337)
+
+New PrometheusRule `luna-pi-hardware` (`clusters/dev/apps/monitoring-alerts/`), routed to ntfy via the existing default Alertmanager route:
+
+| Alert | Condition | For |
+|---|---|---|
+| `PiTemperatureHigh` | `node_hwmon_temp_celsius{chip="thermal_thermal_zone0"}` > 70 °C | 5 min |
+| `PiSwapHigh` | Swap usage > 80 % | 10 min |

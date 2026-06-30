@@ -137,6 +137,6 @@ cat /proc/loadavg       # 1-min should be < 4 on a 4-core Pi at normal operation
 
 - [x] **Hardware:** Install enclosure with active cooling — done 2026-06-29 (3D-printed case + Noctua A6x25, 85 °C → 43.9 °C)
 - [x] Re-enable Prometheus, Loki, Kyverno after cooling hardware installed — done 2026-06-29
-- [ ] Add temperature to ntfy alert rules once Prometheus is back (alert if temp > 70 °C for > 5 min)
+- [x] Add temperature to ntfy alert rules once Prometheus is back — done 2026-06-29 (`PiTemperatureHigh`, > 70 °C for 5 min, see [monitoring-alerts](../../clusters/dev/apps/monitoring-alerts/manifests/prometheusrule.yaml))
 - [ ] Investigate policy-reporter SQLite UNIQUE constraint bug — either patch values or open upstream issue
-- [ ] Consider swap usage as an alert threshold in Prometheus (e.g., alert if swap > 80 % for > 10 min)
+- [x] Consider swap usage as an alert threshold in Prometheus — done 2026-06-29 (`PiSwapHigh`, > 80 % for 10 min, same PrometheusRule)
