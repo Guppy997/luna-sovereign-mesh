@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: luna-pi-hardware
+  namespace: kube-prometheus-stack
+  labels:
+    monitoring.instance: luna-sovereign-mesh-dev
+spec:
+  groups:
+    - name: luna-pi-hardware.rules
+      rules:
+        - alert: PiTemperatureHigh
+          expr: node_hwmon_temp_celsius{chip="thermal_thermal_zone0", sensor="temp0"} > 70
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pi CPU temperature high ({{ $value | printf \"%.1f\" }}°C)"
+            description: "CPU temp has been above 70°C for 5 minutes. Throttling starts at 80°C. Check airflow/fan (docs/incidents/2026-06-20-thermal-throttle-cascade-crashloop.md)."
+        - alert: PiSwapHigh
+          expr: (1 - (node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes)) * 100 > 80
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pi swap usage high ({{ $value | printf \"%.0f\" }}%)"
+            description: "Swap has been above 80% for 10 minutes — memory pressure building. Check for runaway pods (docs/incidents/2026-06-20-thermal-throttle-cascade-crashloop.md)."
