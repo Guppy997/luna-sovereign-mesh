@@ -65,9 +65,11 @@ A daily systemd timer runs at 03:00 on the Pi host and writes to a USB stick mou
 | What | How | Kept |
 |---|---|---|
 | All Kubernetes secrets | `kubectl get secrets -A -o yaml` | 90 days |
-| PostgreSQL databases | `pg_dump` via `kubectl exec` (plane + outline) | 90 days |
+| PostgreSQL databases | `pg_dump` via `kubectl exec` (plane + affine) | 90 days |
 | Vaultwarden data | Direct copy from k3s PV (`db.sqlite3` + attachments) | 90 days |
-| MinIO file uploads | Direct copy from k3s PV | 90 days |
+| MinIO file uploads (Plane) | Direct copy from k3s PV | 90 days |
+| Affine blob storage | Direct copy from k3s PV | 90 days |
+| Beaver Habits data | Direct copy from k3s PV | 90 days |
 
 Each daily snapshot is ~10 MB. At 90-day retention the USB stick holds roughly 900 MB of backup data.
 

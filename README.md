@@ -42,9 +42,11 @@ Kubernetes Cluster (k3s, ARM64)
 ├── Homepage         — Self-hosted service dashboard (entry point)
 │
 ├── Productivity
-│   ├── Plane        — Project management (Jira alternative)
-│   ├── Outline      — Wiki & notes (GitHub OAuth)
-│   └── Vaultwarden  — Password manager (Bitwarden-compatible)
+│   ├── Plane          — Project management (Jira alternative)
+│   ├── Affine         — Knowledge base & docs (Notion alternative)
+│   ├── Beaver Habits  — Habit tracker
+│   ├── Beszel         — Lightweight server resource dashboard
+│   └── Vaultwarden    — Password manager (Bitwarden-compatible)
 │
 └── AI Stack
     ├── Luna Dashboard — Custom PWA frontend for OpenClaw
@@ -113,16 +115,18 @@ All services are reachable exclusively from inside the tailnet, routed by Traefi
 
 | Service | Port | Notes |
 |---|---|---|
-| Homepage | `https://…:10000` (root) | Dashboard & entry point for all services |
-| ArgoCD | `…/argocd` | GitOps operator |
+| Homepage | `https://…:10001` (root) | Dashboard & entry point for all services |
+| ArgoCD | `…:10001/argocd` | GitOps operator |
 | Pi-hole | `https://…:10002/admin` | DNS + ad blocking, runs on the host |
 | ntfy | `https://…:10003` | Self-hosted push notifications, fed by Alertmanager |
 | Luna Dashboard | `https://…:10004` | AI assistant frontend (OpenClaw PWA) |
 | Plane | `https://…:10005` | Project management (Jira alternative) |
 | Vaultwarden | `https://…:10006` | Password manager (Bitwarden-compatible) |
-| Outline | `https://…:10007` | Team wiki & notes |
-| Grafana | `…/grafana` | Monitoring dashboards |
-| Prometheus | `…/prometheus` | Metrics & alerting |
+| Affine | `https://…:10007` | Knowledge base & docs (Notion alternative) |
+| Beszel | `https://…:10008` | Lightweight server resource monitoring |
+| Beaver Habits | `https://…:10009` | Habit tracker |
+| Grafana | `…:10001/grafana` | Monitoring dashboards |
+| Prometheus | `…:10001/prometheus` | Metrics & alerting |
 
 ## Incident Postmortems
 
