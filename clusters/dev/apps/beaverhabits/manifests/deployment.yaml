@@ -65,6 +65,8 @@ spec:
     metadata:
       labels:
         app: beaverhabits
+        # Homepage-Status-Widget sucht nach diesem Standard-Label
+        app.kubernetes.io/name: beaverhabits
     spec:
       securityContext:
         seccompProfile:

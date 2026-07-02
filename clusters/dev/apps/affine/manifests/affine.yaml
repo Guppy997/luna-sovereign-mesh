@@ -36,6 +36,8 @@ spec:
     metadata:
       labels:
         app: affine
+        # Homepage-Status-Widget sucht nach diesem Standard-Label
+        app.kubernetes.io/name: affine
     spec:
       securityContext:
         seccompProfile:

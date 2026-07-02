@@ -24,6 +24,8 @@ spec:
     metadata:
       labels:
         app: plane-api
+        # Homepage-Status-Widget sucht nach diesem Standard-Label
+        app.kubernetes.io/name: plane-api
     spec:
       securityContext:
         seccompProfile:
