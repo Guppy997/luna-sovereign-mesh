@@ -13,4 +13,4 @@ dependencies:
     version: 7.0.0
   - name: alloy
     repository: https://grafana.github.io/helm-charts
-    version: 1.8.2
+    version: 1.10.0
