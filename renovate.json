@@ -66,9 +66,9 @@
       "enabled": false
     },
     {
-      "description": "Ignore beszel latest tag (no semver release tags available)",
+      "description": "beszel pinned to semver since 2026-07-02 — updates via Renovate PR",
       "matchPackageNames": ["docker.io/henrygd/beszel", "henrygd/beszel"],
-      "enabled": false
+      "enabled": true
     }
   ]
 }
