@@ -39,6 +39,10 @@ kube-prometheus-stack:
     prometheusSpec:
       retention: 1d
       retentionSize: 256MB
+      # 30s-Default halbiert: Single-User-Homelab braucht keine 30s-Auflösung,
+      # spart CPU + Samples (Pi-Ressourcen)
+      scrapeInterval: 60s
+      evaluationInterval: 60s
       resources:
         requests:
           memory: 64Mi

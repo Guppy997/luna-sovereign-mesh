@@ -84,6 +84,10 @@ argo-cd:
         memory: 256Mi
   configs:
     cm:
+      # Default 120s ließ den application-controller alle Apps alle 2 Min
+      # re-rendern — größter CPU-Verbraucher auf dem Pi. Kein Git-Webhook
+      # möglich (tailnet-only), 5 Min Polling reicht.
+      timeout.reconciliation: 300s
       exec.enabled: false
       server.rbac.log.enforce.enable: true
       jsonnet.enable: false
