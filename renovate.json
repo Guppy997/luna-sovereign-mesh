@@ -61,9 +61,9 @@
       "enabled": false
     },
     {
-      "description": "Ignore AFFiNE stable tag (floating channel, no trackable version)",
+      "description": "AFFiNE pinned to stable@digest since 2026-07-02 — Renovate tracks digest updates on the stable tag",
       "matchPackageNames": ["ghcr.io/toeverything/affine"],
-      "enabled": false
+      "enabled": true
     },
     {
       "description": "beszel pinned to semver since 2026-07-02 — updates via Renovate PR",
