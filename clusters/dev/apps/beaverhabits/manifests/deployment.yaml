@@ -71,7 +71,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: beaverhabits
-          image: daya0576/beaverhabits:latest
+          image: daya0576/beaverhabits:0.9.1
           imagePullPolicy: IfNotPresent
           env:
             - name: HABITS_STORAGE
@@ -96,6 +96,7 @@ spec:
             timeoutSeconds: 5
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           resources:
             requests:
               cpu: 10m
@@ -107,6 +108,9 @@ spec:
               mountPath: /app/.user
             - name: tmp
               mountPath: /tmp
+            # NiceGUI legt Laufzeit-Storage unter <cwd>/.nicegui ab
+            - name: nicegui
+              mountPath: /app/.nicegui
             - name: pwa-manifest
               mountPath: /app/statics/pwa/manifest.json
               subPath: manifest.json
@@ -115,6 +119,8 @@ spec:
           persistentVolumeClaim:
             claimName: beaverhabits-data
         - name: tmp
+          emptyDir: {}
+        - name: nicegui
           emptyDir: {}
         - name: pwa-manifest
           configMap:

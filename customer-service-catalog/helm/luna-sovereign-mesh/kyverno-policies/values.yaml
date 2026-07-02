@@ -17,6 +17,89 @@ kyverno-policies:
               - Pod
             namespaces:
               - kube-system
+    # Überschreibt die Managed-Defaults komplett (Helm ersetzt Listen) —
+    # daher Defaults hier mitkopiert. Zusätzlich: Run-to-completion-Pods
+    # (Jobs/CronJobs) haben keinen Probe-Lebenszyklus.
+    require-pod-probes:
+      any:
+        - resources:
+            kinds:
+              - Pod
+            namespaces:
+              - kube-system
+              - longhorn
+              - loki
+              - kube-prometheus-stack
+        - resources:
+            kinds:
+              - Pod
+            names:
+              - metallb-speaker-*
+            namespaces:
+              - metallb
+        - resources:
+            kinds:
+              - Pod
+            names:
+              - cert-manager-cainjector-*
+            namespaces:
+              - cert-manager
+        - resources:
+            kinds:
+              - Pod
+            names:
+              - external-secrets-*
+            namespaces:
+              - external-secrets
+        - resources:
+            kinds:
+              - Pod
+            names:
+              - kyverno-background-controller-*
+              - kyverno-reports-controller-*
+              - kyverno-migrate-resources-*
+            namespaces:
+              - kyverno
+        # Job-Pods (run-to-completion): Probes ergeben hier keinen Sinn
+        - resources:
+            kinds:
+              - Pod
+            names:
+              - minio-init-*
+            namespaces:
+              - plane
+        - resources:
+            kinds:
+              - Pod
+            names:
+              - cluster-health-digest-*
+            namespaces:
+              - automation
+    # Managed-Defaults mitkopiert (s.o.); zusätzlich: kyverno-migrate-resources
+    # ist ein Upstream-Helm-Hook-Job ohne konfigurierbare Limits
+    require-requests-limits:
+      any:
+        - resources:
+            kinds:
+              - Pod
+            namespaces:
+              - longhorn
+              - kube-system
+        # request-limits for metallb-speaker initContainers cannot be set in the official helm chart
+        - resources:
+            kinds:
+              - Pod
+            names:
+              - metallb-speaker-*
+            namespaces:
+              - metallb
+        - resources:
+            kinds:
+              - Pod
+            names:
+              - kyverno-migrate-resources-*
+            namespaces:
+              - kyverno
 
 # Security-kritische kubara-Policies auf Enforce; Qualitäts-Policies
 # (Probes, PDB, latest-Tag, Requests/Limits) bleiben bewusst auf Audit.

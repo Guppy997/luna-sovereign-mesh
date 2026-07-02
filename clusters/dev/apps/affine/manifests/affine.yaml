@@ -78,6 +78,7 @@ spec:
               value: /root/.affine/config
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
           resources:
@@ -91,6 +92,8 @@ spec:
               mountPath: /root/.affine
             - name: tmp
               mountPath: /tmp
+            - name: cache
+              mountPath: /root/.cache
       containers:
         - name: affine
           image: ghcr.io/toeverything/affine:stable
@@ -143,6 +146,7 @@ spec:
             timeoutSeconds: 5
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
           resources:
@@ -156,9 +160,13 @@ spec:
               mountPath: /root/.affine
             - name: tmp
               mountPath: /tmp
+            - name: cache
+              mountPath: /root/.cache
       volumes:
         - name: storage
           persistentVolumeClaim:
             claimName: affine-storage
         - name: tmp
+          emptyDir: {}
+        - name: cache
           emptyDir: {}

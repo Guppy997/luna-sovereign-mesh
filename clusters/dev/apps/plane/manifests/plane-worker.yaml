@@ -56,12 +56,24 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
+          # celery inspect ping spawnt einen kurzlebigen Python-Prozess im selben
+          # cgroup — Limit lässt dafür Headroom (Requests unverändert)
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - celery -A plane inspect ping -d celery@$HOSTNAME --timeout 10
+            initialDelaySeconds: 120
+            periodSeconds: 120
+            timeoutSeconds: 30
+            failureThreshold: 3
           resources:
             requests:
               cpu: 50m
               memory: 128Mi
             limits:
-              memory: 256Mi
+              memory: 384Mi
           volumeMounts:
             - name: tmp
               mountPath: /tmp
@@ -106,6 +118,12 @@ spec:
               python manage.py wait_for_db
               python manage.py wait_for_migrations
               celery -A plane beat -l info -s /tmp/celerybeat-schedule
+          livenessProbe:
+            exec:
+              command: [sh, -c, test -f /tmp/celerybeat-schedule]
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 5
           envFrom:
             - configMapRef:
                 name: plane-env
