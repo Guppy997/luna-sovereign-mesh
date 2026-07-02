@@ -162,6 +162,9 @@ spec:
               mountPath: /tmp
             - name: cache
               mountPath: /root/.cache
+            # NestJS generiert das GraphQL-Schema zur Laufzeit nach /app/src
+            - name: appsrc
+              mountPath: /app/src
       volumes:
         - name: storage
           persistentVolumeClaim:
@@ -169,4 +172,6 @@ spec:
         - name: tmp
           emptyDir: {}
         - name: cache
+          emptyDir: {}
+        - name: appsrc
           emptyDir: {}
