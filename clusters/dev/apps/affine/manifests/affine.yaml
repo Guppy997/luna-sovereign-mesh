@@ -60,7 +60,7 @@ spec:
             limits:
               memory: 32Mi
         - name: migrate
-          image: ghcr.io/toeverything/affine:stable@sha256:974477c77ef3724aee615102068b40e2e3fd7fe343e52000dbebf366587f230f
+          image: ghcr.io/toeverything/affine:stable@sha256:74baac632031260f8c1c8ba34d9734b5addba0b8e72d6d9b9721e39f77738e94
           command: [node, ./scripts/self-host-predeploy.js]
           env:
             - name: DATABASE_URL
@@ -96,7 +96,7 @@ spec:
               mountPath: /root/.cache
       containers:
         - name: affine
-          image: ghcr.io/toeverything/affine:stable@sha256:974477c77ef3724aee615102068b40e2e3fd7fe343e52000dbebf366587f230f
+          image: ghcr.io/toeverything/affine:stable@sha256:74baac632031260f8c1c8ba34d9734b5addba0b8e72d6d9b9721e39f77738e94
           env:
             - name: NODE_ENV
               value: production
