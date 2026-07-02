@@ -7,6 +7,8 @@ metadata:
     app.kubernetes.io/name: luna-pwa
     app.kubernetes.io/part-of: luna-pwa
 spec:
+  # Gepinnt: Tailscale Serve :10004 proxyt auf diese IP
+  clusterIP: 10.43.132.118
   selector:
     app.kubernetes.io/name: luna-pwa
   ports:

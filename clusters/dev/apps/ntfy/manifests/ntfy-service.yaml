@@ -7,6 +7,8 @@ metadata:
     app.kubernetes.io/name: ntfy
     app.kubernetes.io/part-of: alerting
 spec:
+  # Gepinnt: Tailscale Serve :10003 proxyt auf diese IP
+  clusterIP: 10.43.235.81
   selector:
     app.kubernetes.io/name: ntfy
   ports:

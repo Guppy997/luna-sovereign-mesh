@@ -11,6 +11,9 @@ traefik:
       # NodePorts schließen — Zugriff nur über LB-IP (LAN-seitig durch
       # loadBalancerSourceRanges blockiert) und Tailscale Serve (ClusterIP)
       allocateLoadBalancerNodePorts: false
+      # Gepinnt: Tailscale Serve (:10001, :10005-:10009) proxyt auf diese IP —
+      # bei Service-Neuanlage ohne Pin wären alle Serve-Einträge tot
+      clusterIP: 10.43.53.234
       loadBalancerSourceRanges:
         - 100.64.0.0/10 # nur Tailnet
   api:
