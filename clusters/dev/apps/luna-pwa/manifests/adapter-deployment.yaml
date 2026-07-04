@@ -26,7 +26,7 @@ spec:
       containers:
         - name: adapter
           # Lokal gebautes ARM64-Image (in containerd importiert) -> kein Registry-Pull
-          image: luna-adapter:v0.1.5
+          image: luna-adapter:v0.1.6
           imagePullPolicy: Never
           env:
             - name: OPENCLAW_WS
@@ -35,8 +35,6 @@ spec:
               value: /secrets/device-ed25519.pem
             - name: GATEWAY_TOKEN_FILE
               value: /secrets/gateway-token
-            - name: DEVICE_TOKEN_FILE
-              value: /data/device-token
             - name: PORT
               value: "3001"
           ports:
@@ -67,13 +65,8 @@ spec:
             - name: secrets
               mountPath: /secrets
               readOnly: true
-            - name: data
-              mountPath: /data
       volumes:
         # Manuell angelegtes Secret (NICHT in git) — wie die anderen Master-Secrets im Projekt
         - name: secrets
           secret:
             secretName: luna-adapter-secrets
-        # Beschreibbarer Pfad für den deviceToken (rootfs ist read-only)
-        - name: data
-          emptyDir: {}
