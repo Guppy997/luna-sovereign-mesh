@@ -5,6 +5,8 @@ metadata:
   namespace: kube-prometheus-stack
   labels:
     monitoring.instance: luna-sovereign-mesh-dev
+    # required: the Prometheus CR's probeSelector only matches this label
+    release: kube-prometheus-stack
 spec:
   jobName: pihole-dns
   interval: 60s
