@@ -227,6 +227,20 @@ prometheus-blackbox-exporter:
       - image-pull-secret
   global:
     imageRegistry: quay.io
+  config:
+    modules:
+      # Probes Pi-hole on the host: full DNS round-trip, not just a TCP connect.
+      # Pi-hole is the single upstream for LAN, tailnet AND cluster DNS since 2026-07-05.
+      dns_pihole:
+        prober: dns
+        timeout: 5s
+        dns:
+          query_name: github.com
+          query_type: A
+          transport_protocol: udp
+          preferred_ip_protocol: ip4
+          valid_rcodes:
+            - NOERROR
 
 externalSecrets:
   secretStoreRef:

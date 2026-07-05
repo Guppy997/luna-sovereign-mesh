@@ -144,6 +144,8 @@ honestly because a single-node homelab is exactly where you learn this:
 - [2026-06-29 — Cooling upgrade + resource optimisation](docs/incidents/2026-06-29-cooling-upgrade-resource-optimisation.md)
   (3D-printed enclosure + Noctua A6x25 fan: 85 °C → 43.9 °C; all services re-enabled; Plane and Prometheus memory requests tuned for single-user homelab use)
 - [2026-07-05 — Expired GitHub token → cluster-wide Argo CD sync blindness](docs/incidents/2026-07-05-argocd-github-token-expiry.md)
+- [2026-07-05 — DNS cascade during AI-HAT driver install](docs/incidents/2026-07-05-dns-cascade-hailo-install.md)
+  (reboot churn → MagicDNS SERVFAIL with no upstream configured; containerd, CoreDNS, Argo CD and exit-node clients all lost resolution; tailnet nameservers + Pi-hole-first host DNS + blackbox DNS alerting added)
   (all 17 apps stuck on `Sync: Unknown` behind a generic-looking daily alert; root cause was one expired PAT shared by every Application — rotated, all apps resynced within 30s)
 
 Further reading: [docs/security.md](docs/security.md) covers the "why" behind every security decision in detail.

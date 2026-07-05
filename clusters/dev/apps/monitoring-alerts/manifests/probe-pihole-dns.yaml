@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: pihole-dns
+  namespace: kube-prometheus-stack
+  labels:
+    monitoring.instance: luna-sovereign-mesh-dev
+spec:
+  jobName: pihole-dns
+  interval: 60s
+  module: dns_pihole
+  prober:
+    url: kube-prometheus-stack-prometheus-blackbox-exporter.kube-prometheus-stack.svc:9115
+  targets:
+    staticConfig:
+      static:
+        # Pi-hole on the host (LAN IP) — the single DNS upstream for LAN, tailnet and cluster
+        - 192.168.178.117:53

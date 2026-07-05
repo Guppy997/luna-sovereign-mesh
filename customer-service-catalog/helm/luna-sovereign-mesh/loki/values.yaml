@@ -13,7 +13,9 @@ loki:
       requests:
         memory: 128Mi
       limits:
-        memory: 256Mi
+        # 512Mi: WAL replay after reboot needs short bursts well above steady state
+        # (7 OOMKills on 2026-07-05 with the previous 256Mi limit)
+        memory: 512Mi
     persistence:
       enabled: true
       size: 5Gi
