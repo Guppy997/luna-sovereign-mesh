@@ -143,5 +143,7 @@ honestly because a single-node homelab is exactly where you learn this:
   (85.6 °C SoC temp, CPU throttled, all pods lost API connectivity simultaneously; Prometheus/Loki/Kyverno temporarily disabled as mitigation — resolved 2026-06-29)
 - [2026-06-29 — Cooling upgrade + resource optimisation](docs/incidents/2026-06-29-cooling-upgrade-resource-optimisation.md)
   (3D-printed enclosure + Noctua A6x25 fan: 85 °C → 43.9 °C; all services re-enabled; Plane and Prometheus memory requests tuned for single-user homelab use)
+- [2026-07-05 — Expired GitHub token → cluster-wide Argo CD sync blindness](docs/incidents/2026-07-05-argocd-github-token-expiry.md)
+  (all 17 apps stuck on `Sync: Unknown` behind a generic-looking daily alert; root cause was one expired PAT shared by every Application — rotated, all apps resynced within 30s)
 
 Further reading: [docs/security.md](docs/security.md) covers the "why" behind every security decision in detail.
