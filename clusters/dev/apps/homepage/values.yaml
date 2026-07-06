@@ -150,6 +150,11 @@ config:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10000
             description: Fokus-Timer & Lernprojekte
             icon: si-pwa-#5a0fc8
+        - Fitness-Tracker:
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10011
+            description: Tägliche Einheit & Gym-Rotation
+            icon: mdi-dumbbell-#10b981
+            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10011/api/health
         - Home Assistant:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10010
             description: Smart Home Steuerung
