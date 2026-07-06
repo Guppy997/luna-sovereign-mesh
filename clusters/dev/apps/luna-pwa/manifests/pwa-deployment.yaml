@@ -57,6 +57,76 @@ spec:
             # nginx-unprivileged schreibt pid + temp nach /tmp -> bei ROFs beschreibbar machen
             - name: tmp
               mountPath: /tmp
+
+        # Eigener Tailscale-Knoten nur für diese App — bekommt einen eigenen
+        # Hostnamen im Tailnet (luna-pwa.<tailnet>.ts.net) statt sich den
+        # Pi-Hostnamen + Port mit den anderen PWAs zu teilen. Grund: Android
+        # WebAPKs assoziieren sich teils nur über den Hostnamen (ohne Port)
+        # mit einer Seite — mehrere PWAs auf demselben Host+verschiedenen
+        # Ports kollidieren dadurch beim Installieren ("Open in <andere App>").
+        # TS_USERSPACE=true: reines Userspace-Networking, kein /dev/net/tun,
+        # kein NET_ADMIN nötig — läuft mit dem Rest des Pods unter Kyverno
+        # Enforce (RO-rootfs, non-root, capabilities drop ALL).
+        - name: ts-luna
+          image: tailscale/tailscale@sha256:25cde9ad76020b0e29229136d0c38b5962e9a0e1774ffac9b0df68e4a37d6cf0
+          env:
+            - name: TS_AUTHKEY
+              valueFrom:
+                secretKeyRef:
+                  name: luna-pwa-ts-authkey
+                  key: authkey
+            - name: TS_HOSTNAME
+              value: luna-pwa
+            - name: TS_STATE_DIR
+              value: /var/lib/tailscale
+            # Ohne das versucht containerboot, den Status in einem
+            # k8s-Secret zu speichern (Standardverhalten sobald es sich
+            # selbst als in-Kubernetes-laufend erkennt) — bräuchte dafür
+            # RBAC-Rechte auf Secrets. Leerer Wert = einfach die
+            # gemountete emptyDir (TS_STATE_DIR) nutzen, kein RBAC nötig.
+            - name: TS_KUBE_SECRET
+              value: ""
+            - name: TS_SERVE_CONFIG
+              value: /config/serve.json
+            - name: TS_USERSPACE
+              value: "true"
+            - name: TS_EXTRA_ARGS
+              value: --advertise-tags=tag:pwa-sidecar
+          securityContext:
+            # containerboot chmod't sein State-Verzeichnis selbst — als
+            # emptyDir gehört das root:root, ohne Root-User (bzw. CAP_FOWNER)
+            # schlägt das fehl und tailscaled startet mit "unhealthy state
+            # store". Pod-weites runAsNonRoot/runAsUser 101 (für den
+            # nginx-Container gedacht) hier bewusst für diesen einen
+            # Container überschrieben.
+            runAsNonRoot: false
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          volumeMounts:
+            - name: ts-state
+              mountPath: /var/lib/tailscale
+            - name: ts-config
+              mountPath: /config
+              readOnly: true
+            - name: ts-tmp
+              mountPath: /tmp
       volumes:
         - name: tmp
           emptyDir: {}
+        - name: ts-state
+          emptyDir: {}
+        - name: ts-tmp
+          emptyDir: {}
+        - name: ts-config
+          configMap:
+            name: luna-pwa-ts-serve-config

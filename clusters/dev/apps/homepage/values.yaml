@@ -120,7 +120,7 @@ config:
             app: beaverhabits
             siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10009
         - Luna Dashboard:
-            href: https://raspberrypi-1.tailddc8f7.ts.net:10004
+            href: https://luna-pwa.tailddc8f7.ts.net
             description: KI-Mitarbeiterin (OpenClaw)
             icon: mdi-robot-#7c3aed
             namespace: luna-pwa
@@ -147,14 +147,15 @@ config:
             app: vaultwarden
             siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10006/alive
         - Lern-PWA:
-            href: https://raspberrypi-1.tailddc8f7.ts.net:10000
+            href: https://lern-pwa.tailddc8f7.ts.net
             description: Fokus-Timer & Lernprojekte
             icon: si-pwa-#5a0fc8
+            siteMonitor: https://lern-pwa.tailddc8f7.ts.net/api/health
         - Fitness-Tracker:
-            href: https://raspberrypi-1.tailddc8f7.ts.net:10011
+            href: https://fitness-pwa.tailddc8f7.ts.net
             description: Tägliche Einheit & Gym-Rotation
             icon: mdi-dumbbell-#10b981
-            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10011/api/health
+            siteMonitor: https://fitness-pwa.tailddc8f7.ts.net/api/health
         - Home Assistant:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10010
             description: Smart Home Steuerung
