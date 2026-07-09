@@ -162,10 +162,10 @@ config:
             icon: home-assistant.png
             siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10010
         - Open Claw:
-            href: http://open-claw.tailddc8f7.ts.net:18789/#token={{HOMEPAGE_VAR_OPENCLAW_TOKEN}}
+            href: https://open-claw.tailddc8f7.ts.net/#token={{HOMEPAGE_VAR_OPENCLAW_TOKEN}}
             description: OpenClaw Control (Oracle, via Tailscale)
             icon: oracle.png
-            siteMonitor: http://open-claw.tailddc8f7.ts.net:18789
+            siteMonitor: https://open-claw.tailddc8f7.ts.net
 
     - Infrastruktur:
         - ArgoCD:
