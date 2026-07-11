@@ -1,3 +1,9 @@
+# Chart jameswynn/homepage ist bei appVersion v1.2.0 stehengeblieben (unmaintained),
+# daher Image-Pin hier statt Chart-Bump
+image:
+  repository: ghcr.io/gethomepage/homepage
+  tag: v1.13.2
+
 enableRbac: true
 
 serviceAccount:
