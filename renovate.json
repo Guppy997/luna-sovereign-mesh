@@ -29,6 +29,11 @@
   },
   "packageRules": [
     {
+      "description": "Lokal gebaute Images (nur auf dem Pi, imagePullPolicy: Never) — kein Registry-Lookup möglich",
+      "matchPackageNames": ["luna-pwa", "luna-adapter"],
+      "enabled": false
+    },
+    {
       "description": "Auto-merge patch updates for Helm and k8s manifests",
       "matchUpdateTypes": ["patch"],
       "matchManagers": ["helmv3", "argocd", "kubernetes"],
