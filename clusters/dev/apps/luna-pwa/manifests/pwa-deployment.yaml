@@ -8,6 +8,11 @@ metadata:
     app.kubernetes.io/part-of: luna-pwa
 spec:
   replicas: 1
+  # Recreate statt RollingUpdate: beim Rolling-Overlap registriert sich der
+  # neue ts-Sidecar parallel zum alten und bekommt "luna-pwa-1" statt
+  # "luna-pwa" — alter Pod muss erst weg, bevor der neue startet
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app.kubernetes.io/name: luna-pwa
