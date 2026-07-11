@@ -92,6 +92,10 @@ spec:
               value: "true"
             - name: TS_EXTRA_ARGS
               value: --advertise-tags=tag:pwa-sidecar
+            # containerboot-eigener /healthz-Endpoint (Port 9002) — Basis für
+            # die Probes unten (Kyverno require-pod-probes gilt für ALLE Container)
+            - name: TS_ENABLE_HEALTH_CHECK
+              value: "true"
           securityContext:
             # containerboot chmod't sein State-Verzeichnis selbst — als
             # emptyDir gehört das root:root, ohne Root-User (bzw. CAP_FOWNER)
@@ -106,6 +110,18 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 9002
+            # Tailscale-Login + Serve-Setup brauchen einen Moment
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9002
+            initialDelaySeconds: 30
+            periodSeconds: 30
           resources:
             requests:
               cpu: 10m
