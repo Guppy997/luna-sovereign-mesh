@@ -115,6 +115,7 @@ All services are reachable exclusively from inside the tailnet, routed by Traefi
 
 | Service | Port | Notes |
 |---|---|---|
+| Lern-PWA | `https://…:10000` | Learning tracker, runs on the host (port 8090) |
 | Homepage | `https://…:10001` (root) | Dashboard & entry point for all services |
 | ArgoCD | `…:10001/argocd` | GitOps operator |
 | Pi-hole | `https://…:10002/admin` | DNS + ad blocking, runs on the host |
@@ -127,6 +128,10 @@ All services are reachable exclusively from inside the tailnet, routed by Traefi
 | Beaver Habits | `https://…:10009` | Habit tracker |
 | Grafana | `…:10001/grafana` | Monitoring dashboards |
 | Prometheus | `…:10001/prometheus` | Metrics & alerting |
+| Home Assistant | `https://…:10010` | Smart home, runs on the host (port 8123) |
+| Fitness-PWA | `https://…:10011` | Gym tracker, runs on the host (port 8091) |
+
+The `tailscale serve` port map is not GitOps-managed — after a state loss, restore it with [`scripts/apply-tailscale-serve.sh`](scripts/apply-tailscale-serve.sh) (source of truth for the mapping).
 
 ## Incident Postmortems
 
