@@ -46,6 +46,14 @@ env:
       secretKeyRef:
         name: beszel-homepage-credentials
         key: password
+  # Home-Assistant Long-Lived-Token fürs KI-Server-Widget (Jarvis an/aus).
+  # ExternalSecret homeassistant-token-es → Secret homeassistant-token
+  # (Master-Secret liegt manuell in der external-secrets-ns, NICHT in Git).
+  - name: HOMEPAGE_VAR_HASS_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: homeassistant-token
+        key: token
 
 persistence:
   logs:
@@ -174,6 +182,17 @@ config:
             siteMonitor: https://open-claw.tailddc8f7.ts.net
 
     - Infrastruktur:
+        - Jarvis (KI-Server):
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10010
+            description: KI-Server — an/aus per Wake-on-LAN (Klick öffnet HA)
+            icon: mdi-server-network-#f59e0b
+            widget:
+              type: homeassistant
+              url: http://192.168.178.117:8123
+              key: "{{HOMEPAGE_VAR_HASS_TOKEN}}"
+              custom:
+                - state: switch.ki_server
+                  label: Server
         - ArgoCD:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10001/argocd
             description: GitOps Deployment Dashboard
