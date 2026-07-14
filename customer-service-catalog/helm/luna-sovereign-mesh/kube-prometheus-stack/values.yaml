@@ -156,27 +156,36 @@ kube-prometheus-stack:
       monitor:
         additionalLabels:
           monitoring.instance: luna-sovereign-mesh-dev
+  # k3s läuft als Ein-Prozess-Binary: der kubelet-Endpoint (10250) liefert
+  # apiserver/etcd/scheduler/controller-manager-Metriken mit. Die separaten
+  # Control-Plane-Scrapes verdoppeln daher nur Serien (2026-07-14: 44k von
+  # 137k head series allein der apiserver-Scrape) → deaktiviert, die
+  # zugehörigen defaultRules schaltet das Chart damit automatisch mit ab.
   kubeApiServer:
-    serviceMonitor:
-      additionalLabels:
-        monitoring.instance: luna-sovereign-mesh-dev
+    enabled: false
+  kubeControllerManager:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeProxy:
+    enabled: false
+  kubeEtcd:
+    enabled: false
   kubelet:
     serviceMonitor:
       additionalLabels:
         monitoring.instance: luna-sovereign-mesh-dev
-  kubeControllerManager:
-    serviceMonitor:
-      additionalLabels:
-        monitoring.instance: luna-sovereign-mesh-dev
+      # Embedded-Control-Plane-Histogramme aus dem kubelet-Scrape droppen
+      # (~45k Serien): Homelab-Dashboards nutzen nur Kubelet/cAdvisor-Metriken.
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: "(apiserver|etcd|scheduler|workqueue|prober)_.*"
+          action: drop
   coreDns:
     serviceMonitor:
       additionalLabels:
         monitoring.instance: luna-sovereign-mesh-dev
   kubeDns:
-    serviceMonitor:
-      additionalLabels:
-        monitoring.instance: luna-sovereign-mesh-dev
-  kubeScheduler:
     serviceMonitor:
       additionalLabels:
         monitoring.instance: luna-sovereign-mesh-dev
@@ -190,6 +199,10 @@ kube-prometheus-stack:
         memory: 100Mi
       limits:
         memory: 256Mi
+    # Go-GC anweisen, den Heap unter 192Mi zu halten — ohne Limit wuchs
+    # Grafana auf ~300Mi RSS (Pi-RAM-Knappheit, 2026-07-14)
+    env:
+      GOMEMLIMIT: 192MiB
     service:
       type: ClusterIP
     admin:
