@@ -184,15 +184,15 @@ config:
     - Infrastruktur:
         - Jarvis (KI-Server):
             href: https://raspberrypi-1.tailddc8f7.ts.net:10010
-            description: KI-Server — an/aus per Wake-on-LAN (Klick öffnet HA)
+            description: KI-Server — an/aus per Wake-on-LAN
             icon: mdi-server-network-#f59e0b
+            # Echte Start/Stop-Buttons via jarvis-control (manifests/jarvis-control.yaml),
+            # eingebettet als iframe; HA-Token bleibt serverseitig im Cluster.
             widget:
-              type: homeassistant
-              url: http://192.168.178.117:8123
-              key: "{{HOMEPAGE_VAR_HASS_TOKEN}}"
-              custom:
-                - state: switch.ki_server
-                  label: Server
+              type: iframe
+              name: jarvis-control
+              src: https://raspberrypi-1.tailddc8f7.ts.net:10001/jarvis/
+              classes: h-16
         - ArgoCD:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10001/argocd
             description: GitOps Deployment Dashboard
