@@ -94,6 +94,18 @@ kube-prometheus-stack:
           - receiver: "null"
             matchers:
               - alertname =~ "Watchdog|InfoInhibitor"
+          # apiserver-Scrape ist bewusst deaktiviert (s. kubeApiServer.enabled
+          # oben) — diese Alerts hängen alle an job="apiserver" und sind damit
+          # dauerhafte Fehlalarme. KubeAPIDown selbst hängt zusätzlich am
+          # kubeApiServer.enabled-Gate und verschwindet dadurch schon aus der Regel;
+          # die anderen 5 nicht (nur an defaultRules.rules.kubernetesSystem, s.
+          # Kommentar unten) — die Route hier fängt beide Fälle ab (Redundanz für
+          # KubeAPIDown ist harmlos). Stummgeschaltet statt per defaultRules.disabled
+          # gelöscht: bleiben in Prometheus/Alertmanager sichtbar, pushen nur nicht
+          # mehr auf ntfy.
+          - receiver: "null"
+            matchers:
+              - alertname =~ "KubeAPIDown|KubeAPIInstanceUnreachable|KubeAPITerminatedRequests|KubeAggregatedAPIDown|KubeAggregatedAPIErrors|KubeClientCertificateExpiration"
       receivers:
         - name: "null"
         - name: ntfy
@@ -164,17 +176,16 @@ kube-prometheus-stack:
   # Chart selbst mit ab (Template prüft zusätzlich .Values.kubeApiServer.enabled).
   # ABER: templates/prometheus/rules-1.14/kubernetes-system-apiserver.yaml (Alert
   # KubeAPIDown u.a.) hängt NUR an defaultRules.rules.kubernetesSystem, nicht an
-  # kubeApiServer.enabled — ohne den Disable unten feuert KubeAPIDown dauerhaft
-  # als Fehlalarm (absent(up{job="apiserver"}) ist ja immer wahr, Job existiert
-  # nicht mehr). Entdeckt 2026-07-16: Alert feuerte seit 14.07. alle 12h (repeat_interval).
-  defaultRules:
-    disabled:
-      KubeAPIDown: true
-      KubeAPIInstanceUnreachable: true
-      KubeAPITerminatedRequests: true
-      KubeAggregatedAPIDown: true
-      KubeAggregatedAPIErrors: true
-      KubeClientCertificateExpiration: true
+  # kubeApiServer.enabled — ohne Gegenmaßnahme feuert KubeAPIDown dauerhaft als
+  # Fehlalarm (absent(up{job="apiserver"}) ist ja immer wahr, Job existiert nicht
+  # mehr). Entdeckt 2026-07-16: Alert feuerte seit 14.07. alle 12h (repeat_interval).
+  # NICHT über defaultRules.disabled lösbar: kubernetesSystem hängt an DREI Dateien
+  # (kubernetes-system.yaml + -kubelet.yaml + -apiserver.yaml), einzeln ausschalten
+  # bräuchte defaultRules.disabled für ALLE 6 Alerts der apiserver-Datei — dann
+  # wird deren rules-Liste leer, und der Chart rendert `rules: null` statt `[]`
+  # (Sprig-Listen-Bug, kein `:= list`-Init) → PrometheusRule von k8s abgelehnt
+  # ("spec.groups[0].rules ... must be of type array"). Stattdessen unten in der
+  # Alertmanager-Route stummgeschaltet (gleiches Muster wie Watchdog/InfoInhibitor).
   kubeApiServer:
     enabled: false
   kubeControllerManager:
