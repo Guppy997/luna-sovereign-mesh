@@ -213,10 +213,14 @@ kube-prometheus-stack:
         memory: 100Mi
       limits:
         memory: 256Mi
-    # Go-GC anweisen, den Heap unter 192Mi zu halten — ohne Limit wuchs
-    # Grafana auf ~300Mi RSS (Pi-RAM-Knappheit, 2026-07-14)
-    env:
-      GOMEMLIMIT: 192MiB
+    # Kein eigener env.GOMEMLIMIT mehr (war 192MiB, gesetzt 2026-07-14 gegen
+    # RSS-Wachstum auf ~300Mi): Der grafana-Subchart setzt GOMEMLIMIT inzwischen
+    # SELBST automatisch aus resources.limits.memory (templates/_pod.tpl, kein
+    # Values-Toggle zum Abschalten) — unser eigener Eintrag kam als zweites
+    # env-Listenelement mit gleichem Namen dazu. Führte zu
+    # "duplicate entries for key [name=\"GOMEMLIMIT\"]" in Argos
+    # structured-merge-diff → ComparisonError → App-Sync-Status dauerhaft
+    # Unknown für ALLE Resources (entdeckt 2026-07-16 beim KubeAPIDown-Fix).
     service:
       type: ClusterIP
     admin:
