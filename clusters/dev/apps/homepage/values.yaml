@@ -87,7 +87,6 @@ config:
       saturate: 50
       brightness: 50
       opacity: 30
-    cardBlur: sm
     theme: dark
     color: slate
     layout:
