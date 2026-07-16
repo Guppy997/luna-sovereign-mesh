@@ -159,8 +159,22 @@ kube-prometheus-stack:
   # k3s läuft als Ein-Prozess-Binary: der kubelet-Endpoint (10250) liefert
   # apiserver/etcd/scheduler/controller-manager-Metriken mit. Die separaten
   # Control-Plane-Scrapes verdoppeln daher nur Serien (2026-07-14: 44k von
-  # 137k head series allein der apiserver-Scrape) → deaktiviert, die
-  # zugehörigen defaultRules schaltet das Chart damit automatisch mit ab.
+  # 137k head series allein der apiserver-Scrape) → deaktiviert. Die
+  # kubeApiserver{Availability,Burnrate,Histogram,Slos}-defaultRules gated das
+  # Chart selbst mit ab (Template prüft zusätzlich .Values.kubeApiServer.enabled).
+  # ABER: templates/prometheus/rules-1.14/kubernetes-system-apiserver.yaml (Alert
+  # KubeAPIDown u.a.) hängt NUR an defaultRules.rules.kubernetesSystem, nicht an
+  # kubeApiServer.enabled — ohne den Disable unten feuert KubeAPIDown dauerhaft
+  # als Fehlalarm (absent(up{job="apiserver"}) ist ja immer wahr, Job existiert
+  # nicht mehr). Entdeckt 2026-07-16: Alert feuerte seit 14.07. alle 12h (repeat_interval).
+  defaultRules:
+    disabled:
+      KubeAPIDown: true
+      KubeAPIInstanceUnreachable: true
+      KubeAPITerminatedRequests: true
+      KubeAggregatedAPIDown: true
+      KubeAggregatedAPIErrors: true
+      KubeClientCertificateExpiration: true
   kubeApiServer:
     enabled: false
   kubeControllerManager:
