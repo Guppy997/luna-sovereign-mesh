@@ -14,7 +14,7 @@ clusters:
       kubernetesVersion: "1.35"
       dns:
         name: luna-sovereign-mesh-dev.luna.local
-        email: yourname@your-domain.de
+        email: 193275228+Guppy997@users.noreply.github.com
     argocd:
       repo:
         https:

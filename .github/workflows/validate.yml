@@ -1,0 +1,83 @@
+name: validate
+
+# Läuft auf jedem PR gegen main — auch auf denen, die Renovate selbst öffnet.
+# Das ist der Punkt: Patch-Updates sind auf Automerge gestellt und Argo CD
+# synct automatisch, ein fehlerhafter PR ginge also ohne Zwischenstopp in den
+# laufenden Cluster. Diese Checks sind die einzige Stelle, an der noch jemand
+# hinschaut.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets-encrypted:
+    name: Keine unverschlüsselten Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Kernversprechen des Repos: unter secrets/ liegt ausschliesslich
+      # SOPS-Ciphertext. Ein Commit, der das verletzt, darf nicht durchgehen —
+      # entschluesselt-committen passiert genau einmal und ist dann fuer immer
+      # in der History.
+      - name: Alle Dateien unter secrets/ müssen SOPS-verschlüsselt sein
+        run: |
+          set -euo pipefail
+          status=0
+          files=$(git ls-files 'clusters/*/secrets/*.yaml' 'clusters/*/secrets/*.yml' \
+                               'infrastructure/secrets/*.yaml' 'infrastructure/secrets/*.yml')
+          if [ -z "$files" ]; then
+            echo "Keine Secret-Dateien gefunden — pruefe den Pfad in .sops.yaml"
+            exit 1
+          fi
+          for f in $files; do
+            if grep -q 'ENC\[AES256_GCM' "$f"; then
+              echo "  ok          $f"
+            else
+              echo "::error file=$f::Datei liegt unverschlüsselt in Git"
+              status=1
+            fi
+          done
+          exit $status
+
+      # Faengt Keys ab, die versehentlich irgendwo sonst im Repo landen —
+      # ausserhalb der secrets/-Pfade greift keine SOPS-Regel.
+      - name: Keine Klartext-Credentials im übrigen Repo
+        run: |
+          set -euo pipefail
+          pattern='AGE-SECRET-KEY-1|-----BEGIN (RSA|OPENSSH|EC|PRIVATE) |ghp_[a-zA-Z0-9]{36}|tskey-auth-[a-zA-Z0-9]{20,}|sk-[a-zA-Z0-9]{32,}'
+          if git grep -nIE "$pattern" -- . ':!*.md'; then
+            echo "::error::Möglicher Klartext-Schlüssel gefunden (siehe Treffer oben)"
+            exit 1
+          fi
+          echo "Keine Treffer."
+
+  yaml-valid:
+    name: YAML-Syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Helm-Templates sind vor dem Rendern absichtlich kein gueltiges YAML
+      # (Go-Templating), deshalb hier ausgenommen.
+      - name: Manifeste und Configs parsen
+        run: |
+          set -euo pipefail
+          status=0
+          for f in $(git ls-files '*.yaml' '*.yml' | grep -v '/templates/'); do
+            python3 -c "
+          import yaml, sys
+          try:
+              list(yaml.safe_load_all(open('$f')))
+          except Exception as e:
+              print('::error file=$f::' + str(e).replace('\n', ' ')[:200])
+              sys.exit(1)
+          " || status=1
+          done
+          exit $status

@@ -41,6 +41,14 @@ env:
       secretKeyRef:
         name: openclaw-dashboard-token
         key: token
+  # Beszel-Login fürs Widget. Username lag bis 2026-07-26 im Klartext in dieser
+  # Datei — beide Hälften des Logins kommen jetzt aus demselben Secret
+  # (manuell angelegt in ns homepage, NICHT in Git).
+  - name: HOMEPAGE_VAR_BESZEL_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: beszel-homepage-credentials
+        key: username
   - name: HOMEPAGE_VAR_BESZEL_PASSWORD
     valueFrom:
       secretKeyRef:
@@ -226,7 +234,7 @@ config:
             widget:
               type: beszel
               url: http://beszel.beszel.svc.cluster.local:8090
-              username: yourname@your-domain.de
+              username: "{{HOMEPAGE_VAR_BESZEL_USERNAME}}"
               password: "{{HOMEPAGE_VAR_BESZEL_PASSWORD}}"
               version: 2
               systemId: 2lk6992hxaywdvd

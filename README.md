@@ -2,6 +2,8 @@
 
 A self-hosted, privacy-first AI infrastructure built on Kubernetes with a strict GitOps-only workflow. All secrets are encrypted before they touch version control — no plaintext credentials, ever.
 
+> **Short on time?** The [incident postmortems](#incident-postmortems) are the most representative part of this repo — seven write-ups of things that actually broke on a single-node cluster, with the numbers and the fixes. Start with [the Argo CD OOM crash loop](docs/incidents/2026-06-12-argocd-oom-crashloop.md) (1,343 OOM kills nobody noticed) or [the thermal cascade](docs/incidents/2026-06-20-thermal-throttle-cascade-crashloop.md) (85.6 °C → every pod loses the API at once). For the design reasoning instead, go to [docs/security.md](docs/security.md).
+
 ## Contents
 
 - [What This Project Is](#what-this-project-is)
@@ -55,7 +57,8 @@ Kubernetes Cluster (k3s, ARM64)
 Host services (outside Kubernetes)
 ├── Pi-hole + Unbound — Network-wide DNS filtering + recursive resolver
 ├── Tailscale         — Zero-trust mesh VPN: the only way in
-└── systemd timer     — Daily USB backup (secrets, DBs, file uploads)
+└── cron (daily 03:00) — USB backup: DBs, secrets, file uploads
+                         (credentials age-encrypted, 14-day retention)
 ```
 
 ## Security
@@ -63,6 +66,8 @@ Host services (outside Kubernetes)
 Secrets are encrypted at rest with [SOPS](https://github.com/getsops/sops) + [Age](https://github.com/FiloSottile/age) — no external secret server, ciphertext lives directly in Git. The cluster is unreachable from the internet or the local network; all access goes through a [Tailscale](https://tailscale.com) zero-trust tailnet, enforced at both the Kubernetes (`loadBalancerSourceRanges`) and host (UFW default-deny) layers.
 
 Full design rationale (SOPS vs. Vault tradeoffs, zero-trust network enforcement, disaster recovery, backup strategy) → **[docs/security.md](docs/security.md)**
+
+That "no plaintext credentials" claim is enforced, not just stated: [`.github/workflows/validate.yml`](.github/workflows/validate.yml) fails any pull request that adds an unencrypted file under `secrets/`, or that carries a private key or token anywhere else in the tree. It runs on Renovate's own pull requests too — those are set to auto-merge patch updates, and Argo CD auto-syncs, so this check is the last place a human decision is encoded before a change reaches the running cluster.
 
 ## Toolchain
 
@@ -83,6 +88,7 @@ Full design rationale (SOPS vs. Vault tradeoffs, zero-trust network enforcement,
 ```
 luna-sovereign-mesh/
 ├── .sops.yaml                  # Encryption rules — which files, which key
+├── .github/workflows/          # PR validation (see below)
 ├── config.yaml                 # kubara cluster configuration
 ├── clusters/
 │   └── dev/
@@ -103,11 +109,15 @@ luna-sovereign-mesh/
 
 ## Status
 
-Production-ready and in active use — core platform (GitOps, zero-trust networking, secrets, monitoring) is done; the AI stack and productivity apps run daily.
+Production-ready and in active use — core platform (GitOps, zero-trust networking, secrets, monitoring) is done; the AI stack and productivity apps run daily. 170 commits, 17 Argo CD applications, continuously in operation since June 2026 on a single node.
 
-**Recently shipped:** active cooling upgrade (3D-printed case + Noctua fan, see [incidents](#incident-postmortems)), single-user resource tuning across Plane and Prometheus, temperature/swap alerting via ntfy.
+**Recently shipped:**
 
-**Up next:** investigate the open policy-reporter SQLite bug (see incidents), evaluate re-raising Prometheus retention now that thermal headroom exists.
+- **Monitoring gap closed** — node-exporter was deployed but never scraped, so 26 host-level alert rules (CPU, RAM, disk, temperature) had been silently evaluating against no data. Found by auditing alert rules against live targets rather than trusting a green dashboard.
+- **Backup consolidation** — three overlapping backup paths merged into one script; credentials encrypted with age before they touch the USB medium; **restore verified end-to-end** for the first time, not just assumed.
+- **Housekeeping** — journald capped (was unbounded at 10% of disk), unattended-upgrade reports moved from a non-existent MTA to ntfy, a failing `unbound-resolvconf` unit retired.
+
+**Up next:** off-site copy of the encrypted backup set (currently single-medium), re-raise Prometheus retention now that thermal headroom exists, disable Tailscale node-key expiry before it triggers.
 
 ## Running Services
 
@@ -149,8 +159,8 @@ honestly because a single-node homelab is exactly where you learn this:
 - [2026-06-29 — Cooling upgrade + resource optimisation](docs/incidents/2026-06-29-cooling-upgrade-resource-optimisation.md)
   (3D-printed enclosure + Noctua A6x25 fan: 85 °C → 43.9 °C; all services re-enabled; Plane and Prometheus memory requests tuned for single-user homelab use)
 - [2026-07-05 — Expired GitHub token → cluster-wide Argo CD sync blindness](docs/incidents/2026-07-05-argocd-github-token-expiry.md)
+  (all 17 apps stuck on `Sync: Unknown` behind a generic-looking daily alert; root cause was one expired PAT shared by every Application — rotated, all apps resynced within 30s)
 - [2026-07-05 — DNS cascade during AI-HAT driver install](docs/incidents/2026-07-05-dns-cascade-hailo-install.md)
   (reboot churn → MagicDNS SERVFAIL with no upstream configured; containerd, CoreDNS, Argo CD and exit-node clients all lost resolution; tailnet nameservers + Pi-hole-first host DNS + blackbox DNS alerting added)
-  (all 17 apps stuck on `Sync: Unknown` behind a generic-looking daily alert; root cause was one expired PAT shared by every Application — rotated, all apps resynced within 30s)
 
 Further reading: [docs/security.md](docs/security.md) covers the "why" behind every security decision in detail.
