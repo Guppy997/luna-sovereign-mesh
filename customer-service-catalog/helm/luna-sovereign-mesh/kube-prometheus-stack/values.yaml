@@ -168,6 +168,20 @@ kube-prometheus-stack:
       monitor:
         additionalLabels:
           monitoring.instance: luna-sovereign-mesh-dev
+  # ACHTUNG Sub-Chart: prometheus-node-exporter rendert seine ServiceMonitor aus
+  # EIGENEN Values (prometheus.monitor.*), das serviceMonitorSelector-Label der
+  # Prometheus-CR (monitoring.instance) wird NICHT vom Parent-Chart durchgereicht.
+  # Ohne diesen Block existiert die SM, wird aber nie in einen Scrape-Pool
+  # aufgenommen → node_*-Metriken fehlen komplett und 26 Alerts können nicht
+  # feuern, u.a. PiSwapHigh/PiTemperatureHigh (eigene luna-pi-hardware-Rules) und
+  # NodeFilesystemAlmostOutOfSpace. Entdeckt 2026-07-26 beim Setup-Audit: Swap lag
+  # bei 57 % (Schwelle 50 %), ohne dass ein Alert kam. Gleiche Fallstrick-Klasse wie
+  # bei den Probe-CRs (die brauchen `release`, hier fehlt `monitoring.instance`).
+  prometheus-node-exporter:
+    prometheus:
+      monitor:
+        additionalLabels:
+          monitoring.instance: luna-sovereign-mesh-dev
   # k3s läuft als Ein-Prozess-Binary: der kubelet-Endpoint (10250) liefert
   # apiserver/etcd/scheduler/controller-manager-Metriken mit. Die separaten
   # Control-Plane-Scrapes verdoppeln daher nur Serien (2026-07-14: 44k von
