@@ -37,7 +37,7 @@ spec:
             - name: INVITATIONS_ALLOWED
               value: "true"
             - name: WEBSOCKET_ENABLED
-              value: "true"
+              value: "false"
             - name: PUSH_ENABLED
               value: "false"
             - name: ADMIN_TOKEN
