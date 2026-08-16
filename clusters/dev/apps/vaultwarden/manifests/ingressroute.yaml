@@ -1,4 +1,13 @@
 apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: vaultwarden-block-ws
+  namespace: vaultwarden
+spec:
+  replacePath:
+    path: /notifications-disabled
+---
+apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: vaultwarden
@@ -7,6 +16,21 @@ spec:
   entryPoints:
     - web
   routes:
+    # WebSocket-Verbindungen durch Tailscale Serve sind instabil (halten mal
+    # Minuten, brechen mal nach 1s lautlos ab) statt sauber zu scheitern -
+    # das ist der schlechteste Fall für den Bitwarden-Client, der sich auf
+    # eine vermeintlich lebende Verbindung verlässt und Updates verpasst.
+    # Höhere Priorität + eigene Route blockt /notifications/hub konsequent,
+    # Client fällt zuverlässig auf Polling zurück (offizielles Fallback-Verhalten).
+    - match: HeaderRegexp(`X-Forwarded-Host`, `.+:10006`) && PathPrefix(`/notifications`)
+      kind: Rule
+      priority: 200
+      middlewares:
+        - name: vaultwarden-block-ws
+      services:
+        - name: vaultwarden
+          port: 80
+          passHostHeader: false
     - match: HeaderRegexp(`X-Forwarded-Host`, `.+:10006`)
       kind: Rule
       priority: 100
