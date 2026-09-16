@@ -26,7 +26,7 @@ spec:
       containers:
         - name: adapter
           # Lokal gebautes ARM64-Image (in containerd importiert) -> kein Registry-Pull
-          image: luna-adapter:v0.1.8
+          image: luna-adapter:v0.1.9
           imagePullPolicy: Never
           env:
             - name: OPENCLAW_WS
