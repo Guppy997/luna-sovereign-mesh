@@ -6,6 +6,11 @@ global:
 # Pod-Security-Standard-Policies (Upstream-Chart) auf Enforce:
 # Verstöße werden bei der Admission abgelehnt statt nur reportet.
 kyverno-policies:
+  # Ab Chart 3.9 ist der Default ValidatingPolicy (CEL). policyExclude gilt aber
+  # nur für ClusterPolicy — ohne diese Zeile fallen alle Ausnahmen weg (Alloy und
+  # node-exporter: hostPath/hostPorts, k3s-svclb: sysctls) und deren Pods werden
+  # abgelehnt. Umstellung auf vpolExcludeByPolicy steht noch aus.
+  policyType: ClusterPolicy
   validationFailureAction: Enforce
   policyExclude:
     # k3s svclb (ServiceLB) setzt net.ipv4.ip_forward=1 —

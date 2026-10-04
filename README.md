@@ -1,20 +1,33 @@
 # Luna Sovereign Mesh
 
+[![validate](https://github.com/Guppy997/luna-sovereign-mesh/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/Guppy997/luna-sovereign-mesh/actions/workflows/validate.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 A self-hosted, privacy-first AI infrastructure built on Kubernetes with a strict GitOps-only workflow. All secrets are encrypted before they touch version control — no plaintext credentials, ever.
 
 > **Short on time?** The [incident postmortems](#incident-postmortems) are the most representative part of this repo — seven write-ups of things that actually broke on a single-node cluster, with the numbers and the fixes. Start with [the Argo CD OOM crash loop](docs/incidents/2026-06-12-argocd-oom-crashloop.md) (1,343 OOM kills nobody noticed) or [the thermal cascade](docs/incidents/2026-06-20-thermal-throttle-cascade-crashloop.md) (85.6 °C → every pod loses the API at once). For the design reasoning instead, go to [docs/security.md](docs/security.md).
 
+## Highlights
+
+- **Git is the source of truth.** Argo CD pulls this repo with auto-sync, self-heal and prune, so drift in the cluster is reverted automatically.
+- **No plaintext secrets, enforced.** SOPS + age encrypt everything under `secrets/`; CI rejects unencrypted secret files and key or token patterns anywhere else.
+- **Every change is schema-checked before it reaches the cluster.** CI validates the app manifests and renders every catalog chart the way Argo CD does, then checks the output with kubeconform — Renovate's auto-merged updates included.
+- **Nothing is exposed to the internet.** All access goes through a Tailscale tailnet; no port forwarding, no Funnel.
+- **Seven postmortems** of real failures, with root causes, numbers and what changed afterwards.
+
 ## Contents
 
 - [What This Project Is](#what-this-project-is)
-- [Architecture Overview](#architecture-overview)
+- [Architecture](#architecture)
+- [Incident Postmortems](#incident-postmortems)
 - [Security](#security)
 - [Toolchain](#toolchain)
-- [Repository Structure](#repository-structure)
+- [Repository Layout](#repository-layout)
+- [Trade-offs](#trade-offs)
 - [Target Hardware](#target-hardware)
 - [Status](#status)
 - [Running Services](#running-services)
-- [Incident Postmortems](#incident-postmortems)
+- [License](#license)
 
 ## What This Project Is
 
@@ -25,7 +38,32 @@ Luna Sovereign Mesh is a personal infrastructure project with two goals:
 
 The Oracle Cloud ARM64 instance serves as a testing sandbox to validate the GitOps pipeline before deploying to the Pi.
 
-## Architecture Overview
+## Architecture
+
+### How a change reaches the cluster
+
+```mermaid
+flowchart LR
+  change["Commit or PR<br/>(me or Renovate)"] --> ci{"validate<br/>secrets · YAML · schemas"}
+  ci -- "fails" --> blocked["PR blocked"]
+  ci -- "passes" --> main["main"]
+  main -- "pull, outbound only" --> argo["Argo CD<br/>auto-sync · self-heal · prune"]
+  argo --> k3s["k3s on the Raspberry Pi 5"]
+```
+
+Renovate merges patch updates on its own once CI passes; everything else waits for a manual merge. There is no inbound path into the cluster — Argo CD only pulls from GitHub.
+
+### How a request reaches a service
+
+```mermaid
+flowchart LR
+  device["Laptop or phone<br/>in the tailnet"] -- "WireGuard" --> serve["tailscale serve<br/>HTTPS per port"]
+  serve --> traefik["Traefik<br/>host-based routing"]
+  traefik --> apps["Services in k3s"]
+  serve --> host["Host services<br/>Pi-hole · Home Assistant"]
+```
+
+### Components
 
 ```
 GitHub (encrypted GitOps repo)
@@ -61,13 +99,29 @@ Host services (outside Kubernetes)
                          (credentials age-encrypted, 14-day retention)
 ```
 
+## Incident Postmortems
+
+Things that broke, why they broke, and what changed as a result — written up honestly because a single-node homelab is exactly where you learn this.
+
+| Date | Incident | Impact | What changed |
+|---|---|---|---|
+| 2026-06-12 | [Argo CD controller OOMKill crash loop](docs/incidents/2026-06-12-argocd-oom-crashloop.md) | 1,343 OOM kills in 8 days, undetected; node froze under memory pressure | Limit sized from observed usage, zram swap, alerts routed to ntfy |
+| 2026-06-15 | [Prometheus retention 10d → 7d](docs/incidents/2026-06-15-prometheus-retention-tuning.md) | ~750Mi RSS against an 800Mi limit with no size cap | Proactive 3-line GitOps fix, deployed without downtime |
+| 2026-06-16 | [Forced reboot → kubara network crash & silent state corruption](docs/incidents/2026-06-16-forced-reboot-network-recovery.md) | CNI race on restart; DNS integration and Pi-hole blocking silently broken | Post-reboot checklist; automated recovery is a deliberate non-goal on one node |
+| 2026-06-20 | [Thermal throttling → K3s API freeze → cascade crash loop](docs/incidents/2026-06-20-thermal-throttle-cascade-crashloop.md) | 85.6 °C SoC, CPU throttled, every pod lost the API at once | Prometheus, Loki and Kyverno disabled until the cooling upgrade |
+| 2026-06-29 | [Cooling upgrade + resource optimisation](docs/incidents/2026-06-29-cooling-upgrade-resource-optimisation.md) | Planned change | 3D-printed enclosure + Noctua A6x25: 43.9 °C with all services back; memory requests tuned |
+| 2026-07-05 | [Expired GitHub token → Argo CD sync blindness](docs/incidents/2026-07-05-argocd-github-token-expiry.md) | All 17 apps stuck on `Sync: Unknown` behind a generic-looking alert | Token rotated, all apps resynced within 30 s |
+| 2026-07-05 | [DNS cascade during AI-HAT driver install](docs/incidents/2026-07-05-dns-cascade-hailo-install.md) | MagicDNS SERVFAIL; containerd, CoreDNS, Argo CD and exit-node clients lost resolution | Tailnet nameservers, Pi-hole-first host DNS, blackbox DNS alerting |
+
+Further reading: [docs/security.md](docs/security.md) covers the "why" behind every security decision in detail.
+
 ## Security
 
 Secrets are encrypted at rest with [SOPS](https://github.com/getsops/sops) + [Age](https://github.com/FiloSottile/age) — no external secret server, ciphertext lives directly in Git. The cluster is unreachable from the internet or the local network; all access goes through a [Tailscale](https://tailscale.com) zero-trust tailnet, enforced at both the Kubernetes (`loadBalancerSourceRanges`) and host (UFW default-deny) layers.
 
 Full design rationale (SOPS vs. Vault tradeoffs, zero-trust network enforcement, disaster recovery, backup strategy) → **[docs/security.md](docs/security.md)**
 
-That "no plaintext credentials" claim is enforced, not just stated: [`.github/workflows/validate.yml`](.github/workflows/validate.yml) fails any pull request that adds an unencrypted file under `secrets/`, or that carries a private key or token anywhere else in the tree. It runs on Renovate's own pull requests too — those are set to auto-merge patch updates, and Argo CD auto-syncs, so this check is the last place a human decision is encoded before a change reaches the running cluster.
+That "no plaintext credentials" claim is enforced, not just stated: [`.github/workflows/validate.yml`](.github/workflows/validate.yml) fails any pull request that adds an unencrypted file under `secrets/`, or that carries a private key or token anywhere else in the tree. The same workflow validates every manifest and every rendered catalog chart against the Kubernetes and CRD schemas. It runs on Renovate's own pull requests too — those are set to auto-merge patch updates, and Argo CD auto-syncs, so this check is the last place a human decision is encoded before a change reaches the running cluster.
 
 ## Toolchain
 
@@ -82,23 +136,43 @@ That "no plaintext credentials" claim is enforced, not just stated: [`.github/wo
 | [k3s](https://k3s.io) | Kubernetes distribution | Minimal footprint, built for ARM and edge devices |
 | [Tailscale](https://tailscale.com) | Zero-trust network access | WireGuard mesh, ACLs, MagicDNS — no exposed ports |
 | [Pi-hole](https://pi-hole.net) + [Unbound](https://nlnetlabs.nl/projects/unbound/) | DNS layer | Ad blocking + fully recursive resolution, no third-party DNS |
+| [Renovate](https://docs.renovatebot.com) | Dependency updates | Charts, images and actions; patch updates auto-merge behind CI |
+| [kubeconform](https://github.com/yannh/kubeconform) | Schema validation in CI | Fast and strict, CRD schemas via the datreeio catalog |
 
-## Repository Structure
+## Repository Layout
 
 ```
 luna-sovereign-mesh/
-├── .sops.yaml                  # Encryption rules — which files, which key
-├── .github/workflows/          # PR validation (see below)
-├── config.yaml                 # kubara cluster configuration
-├── clusters/
-│   └── dev/
-│       ├── apps/               # Argo CD Application manifests
-│       └── secrets/            # SOPS-encrypted Kubernetes secrets
-├── infrastructure/             # Base infrastructure configs
-├── docs/                       # Architecture deep-dives & incident postmortems
-└── scripts/
-    └── sops-encrypt.sh         # Helper: encrypt a secret file in-place
+├── .github/workflows/validate.yml   # PR checks: encrypted secrets, YAML, schemas
+├── .sops.yaml                       # Encryption rules — which files, which key
+├── config.yaml                      # kubara cluster configuration
+├── renovate.json                    # Dependency updates, patch auto-merge
+├── clusters/dev/
+│   ├── apps/                        # Argo CD Applications + plain manifests per app
+│   └── secrets/                     # SOPS-encrypted Kubernetes secrets
+├── customer-service-catalog/helm/   # Values for the platform services, tuned for this cluster
+├── managed-service-catalog/helm/    # Wrapper chart per platform service (generated by kubara)
+├── docs/
+│   ├── security.md                  # Security design, disaster recovery, backups
+│   └── incidents/                   # Postmortems
+└── scripts/                         # tailscale serve port map, SOPS helper
 ```
+
+**Written for this cluster:** the ten applications under `clusters/dev/apps/` (manifests, ingress routes, external secrets, alert rules, the daily health digest), the values in `customer-service-catalog/`, CI, Renovate config, scripts and all documentation.
+
+**Generated by kubara, then adapted:** the wrapper charts in `managed-service-catalog/` and the shape of `config.yaml`. Changes there are chart upgrades and Pi-specific tuning — memory limits, slower reconcile and scrape intervals, components switched off that a single-user cluster does not need.
+
+## Trade-offs
+
+Deliberate decisions that would look different on a multi-node production platform:
+
+- **Single node, no high availability.** One Raspberry Pi runs everything. Failure modes are documented in the postmortems rather than engineered away — a second node would cost more than the downtime it prevents.
+- **`clusters/dev` is the production cluster.** `dev` is the stage name from the kubara scaffold, and there is only one cluster. Renaming the path would mean re-creating every Argo CD Application for no functional gain.
+- **Some image tags are mutable.** Plane's backend runs on `stable`, and Renovate skips Plane images because the versioned ones introduced incompatible changes (see `renovate.json`). `redis:7-alpine`, `postgres:16-alpine`, `pgvector/pgvector:pg16`, `node:22-alpine` and `busybox:1.36` are pinned to a major or minor version only. Everything else is pinned to a version or digest.
+- **Two images are built on the Pi.** `luna-pwa` and `luna-adapter` use `imagePullPolicy: Never` — there is no registry, so Renovate cannot track them.
+- **The `tailscale serve` port map lives outside GitOps.** It is host state in tailscaled; [`scripts/apply-tailscale-serve.sh`](scripts/apply-tailscale-serve.sh) is the source of truth and restores it.
+- **Auto-merge plus auto-sync.** Renovate patch updates merge without a human, and Argo CD applies them right away. CI is the only gate in between, which is why it validates schemas and not just syntax.
+- **Backups live on a single medium.** Daily backups go to a USB drive (credentials age-encrypted); an off-site copy is next on the list.
 
 ## Target Hardware
 
@@ -109,9 +183,9 @@ luna-sovereign-mesh/
 
 ## Status
 
-Production-ready and in active use — core platform (GitOps, zero-trust networking, secrets, monitoring) is done; the AI stack and productivity apps run daily. 170 commits, 17 Argo CD applications, continuously in operation since June 2026 on a single node.
+In active use since June 2026 on a single node — the core platform (GitOps, zero-trust networking, secrets, monitoring) is done; the AI stack and productivity apps run daily.
 
-**Recently shipped:**
+**Latest milestones:**
 
 - **Monitoring gap closed** — node-exporter was deployed but never scraped, so 26 host-level alert rules (CPU, RAM, disk, temperature) had been silently evaluating against no data. Found by auditing alert rules against live targets rather than trusting a green dashboard.
 - **Backup consolidation** — three overlapping backup paths merged into one script; credentials encrypted with age before they touch the USB medium; **restore verified end-to-end** for the first time, not just assumed.
@@ -122,6 +196,9 @@ Production-ready and in active use — core platform (GitOps, zero-trust network
 ## Running Services
 
 All services are reachable exclusively from inside the tailnet, routed by Traefik via host-based rules on the node's MagicDNS name.
+
+<details>
+<summary>Port map (15 services)</summary>
 
 | Service | Port | Notes |
 |---|---|---|
@@ -141,26 +218,10 @@ All services are reachable exclusively from inside the tailnet, routed by Traefi
 | Home Assistant | `https://…:10010` | Smart home, runs on the host (port 8123) |
 | Fitness-PWA | `https://…:10011` | Gym tracker, runs on the host (port 8091) |
 
+</details>
+
 The `tailscale serve` port map is not GitOps-managed — after a state loss, restore it with [`scripts/apply-tailscale-serve.sh`](scripts/apply-tailscale-serve.sh) (source of truth for the mapping).
 
-## Incident Postmortems
+## License
 
-Things that broke, why they broke, and what changed as a result — written up
-honestly because a single-node homelab is exactly where you learn this:
-
-- [2026-06-12 — Argo CD controller OOMKill crash loop](docs/incidents/2026-06-12-argocd-oom-crashloop.md)
-  (1,343 OOM kills in 8 days, undetected; node froze under memory pressure)
-- [2026-06-15 — Prometheus retention reduced from 10d to 7d](docs/incidents/2026-06-15-prometheus-retention-tuning.md)
-  (proactive tuning after OOM postmortem: ~750Mi RSS against 800Mi limit with no size cap; 3-line GitOps fix, deployed without downtime)
-- [2026-06-16 — Forced reboot → kubara network crash & silent state corruption](docs/incidents/2026-06-16-forced-reboot-network-recovery.md)
-  (CNI race condition on restart; DNS integration and Pi-hole blocking silently broken; why automated recovery is a deliberate non-goal on single-node hardware)
-- [2026-06-20 — Thermal throttling → K3s API freeze → cascade pod crashloop](docs/incidents/2026-06-20-thermal-throttle-cascade-crashloop.md)
-  (85.6 °C SoC temp, CPU throttled, all pods lost API connectivity simultaneously; Prometheus/Loki/Kyverno temporarily disabled as mitigation — resolved 2026-06-29)
-- [2026-06-29 — Cooling upgrade + resource optimisation](docs/incidents/2026-06-29-cooling-upgrade-resource-optimisation.md)
-  (3D-printed enclosure + Noctua A6x25 fan: 85 °C → 43.9 °C; all services re-enabled; Plane and Prometheus memory requests tuned for single-user homelab use)
-- [2026-07-05 — Expired GitHub token → cluster-wide Argo CD sync blindness](docs/incidents/2026-07-05-argocd-github-token-expiry.md)
-  (all 17 apps stuck on `Sync: Unknown` behind a generic-looking daily alert; root cause was one expired PAT shared by every Application — rotated, all apps resynced within 30s)
-- [2026-07-05 — DNS cascade during AI-HAT driver install](docs/incidents/2026-07-05-dns-cascade-hailo-install.md)
-  (reboot churn → MagicDNS SERVFAIL with no upstream configured; containerd, CoreDNS, Argo CD and exit-node clients all lost resolution; tailnet nameservers + Pi-hole-first host DNS + blackbox DNS alerting added)
-
-Further reading: [docs/security.md](docs/security.md) covers the "why" behind every security decision in detail.
+[Apache License 2.0](LICENSE). The repository was bootstrapped with [kubara](https://github.com/kubara-io/kubara) (also Apache-2.0); see [NOTICE](NOTICE) for attribution.

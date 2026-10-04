@@ -2,7 +2,3 @@ creation_rules:
   # Encrypt all secret files under clusters/*/secrets/
   - path_regex: clusters/.*/secrets/.*\.(yaml|yml|json)$
     age: age1dsnr0ejf7acutf5cqa9nj22a6ga7pdu8ph9dw5ymwnerx2t63uas56sua9
-
-  # Encrypt all secret files under infrastructure/secrets/
-  - path_regex: infrastructure/secrets/.*\.(yaml|yml|json)$
-    age: age1dsnr0ejf7acutf5cqa9nj22a6ga7pdu8ph9dw5ymwnerx2t63uas56sua9
