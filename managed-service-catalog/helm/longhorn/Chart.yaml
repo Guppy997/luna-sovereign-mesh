@@ -11,4 +11,4 @@ dependencies:
   # https://artifacthub.io/packages/helm/argo/argo-cd
   - name: longhorn
     repository: https://charts.longhorn.io
-    version: 1.11.2
+    version: 1.13.0
