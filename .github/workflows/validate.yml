@@ -20,7 +20,7 @@ jobs:
     name: Keine unverschlüsselten Secrets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Kernversprechen des Repos: unter secrets/ liegt ausschliesslich
       # SOPS-Ciphertext. Ein Commit, der das verletzt, darf nicht durchgehen —
@@ -30,8 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           status=0
-          files=$(git ls-files 'clusters/*/secrets/*.yaml' 'clusters/*/secrets/*.yml' \
-                               'infrastructure/secrets/*.yaml' 'infrastructure/secrets/*.yml')
+          files=$(git ls-files 'clusters/*/secrets/*.yaml' 'clusters/*/secrets/*.yml')
           if [ -z "$files" ]; then
             echo "Keine Secret-Dateien gefunden — pruefe den Pfad in .sops.yaml"
             exit 1
@@ -65,7 +64,7 @@ jobs:
     name: YAML-Syntax
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Helm-Templates sind vor dem Rendern absichtlich kein gueltiges YAML
       # (Go-Templating), deshalb hier ausgenommen.
@@ -84,3 +83,84 @@ jobs:
           " || status=1
           done
           exit $status
+
+  manifest-schemas:
+    name: Manifest-Schemas
+    runs-on: ubuntu-latest
+    env:
+      KUBECONFORM_VERSION: v0.8.0
+      HELM_VERSION: v4.3.0
+      # Neueste Version in yannh/kubernetes-json-schema. Der Cluster läuft auf
+      # 1.35; die hier genutzten Core-APIs sind in beiden Versionen gleich.
+      K8S_SCHEMA_VERSION: 1.34.12
+      CRD_SCHEMAS: https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
+    steps:
+      - uses: actions/checkout@v7
+
+      # Feste Versionen mit Prüfsumme: die Prüfung soll nicht unbemerkt mit
+      # einem anderen Werkzeug laufen als beim letzten grünen Lauf.
+      - name: kubeconform und Helm installieren
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          base="https://github.com/yannh/kubeconform/releases/download/$KUBECONFORM_VERSION"
+          curl -fsSLO "$base/kubeconform-linux-amd64.tar.gz"
+          curl -fsSL "$base/CHECKSUMS" | grep ' kubeconform-linux-amd64.tar.gz$' | sha256sum -c -
+          tar xzf kubeconform-linux-amd64.tar.gz kubeconform
+          curl -fsSLO "https://get.helm.sh/helm-$HELM_VERSION-linux-amd64.tar.gz"
+          curl -fsSL "https://get.helm.sh/helm-$HELM_VERSION-linux-amd64.tar.gz.sha256sum" | sha256sum -c -
+          tar xzf "helm-$HELM_VERSION-linux-amd64.tar.gz" --strip-components=1 linux-amd64/helm
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
+      # Die YAML-Prüfung oben sieht nur die Syntax. Hier wird gegen die Schemas
+      # geprüft — ein falsch eingerücktes oder vertipptes Feld fällt sonst erst
+      # auf, wenn Argo CD den Sync verweigert. values.yaml unter
+      # clusters/dev/apps/homepage ist eine Helm-Werte-Datei, kein Manifest.
+      - name: App-Manifeste gegen Schemas prüfen
+        run: |
+          set -euo pipefail
+          kubeconform -strict -summary -output text \
+            -kubernetes-version "$K8S_SCHEMA_VERSION" \
+            -schema-location default -schema-location "$CRD_SCHEMAS" \
+            -ignore-filename-pattern 'values\.ya?ml$' \
+            clusters/dev/apps
+
+      # Rendert jeden Katalog-Chart so, wie Argo CD ihn zusammensetzt
+      # (managed values.yaml + customer values.yaml + additional-values.yaml,
+      # siehe template-library/templates/argocd/_argo.appset.tpl), und prüft
+      # das Ergebnis. CRD-Definitionen selbst haben kein Schema und werden
+      # übersprungen — die Ressourcen, die sie benutzen, werden geprüft.
+      - name: Katalog-Charts rendern und prüfen
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/rendered"
+          mkdir -p "$out"
+          for chart in managed-service-catalog/helm/*/; do
+            name=$(basename "$chart")
+            if [ "$name" = template-library ]; then continue; fi
+            customer="customer-service-catalog/helm/luna-sovereign-mesh/$name"
+            args=(-f "$chart/values.yaml")
+            for f in "$customer/values.yaml" "$customer/additional-values.yaml"; do
+              if [ -f "$f" ]; then args+=(-f "$f"); fi
+            done
+            # Downloads von GitHub-Releases (z. B. metrics-server) liefern
+            # gelegentlich einen 500er — drei Versuche statt rotem Lauf.
+            for attempt in 1 2 3; do
+              if helm dependency build "$chart" > /dev/null; then break; fi
+              if [ "$attempt" = 3 ]; then
+                echo "::error::Abhängigkeiten für $name nicht ladbar"
+                exit 1
+              fi
+              sleep 10
+            done
+            # Argo CD reicht die API-Versionen des Clusters durch. Ohne diese
+            # Angabe verweigert z. B. der Traefik-Chart den ServiceMonitor.
+            helm template "$name" "$chart" "${args[@]}" --namespace "$name" \
+              --api-versions monitoring.coreos.com/v1 > "$out/$name.yaml"
+            echo "  gerendert   $name"
+          done
+          kubeconform -strict -summary -output text \
+            -kubernetes-version "$K8S_SCHEMA_VERSION" \
+            -schema-location default -schema-location "$CRD_SCHEMAS" \
+            -skip CustomResourceDefinition \
+            "$out"

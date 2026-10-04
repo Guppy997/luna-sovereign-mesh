@@ -32,7 +32,7 @@ spec:
       containers:
         - name: pwa
           # Lokal gebautes ARM64-Image (nginx, statische SPA + /api-Proxy zum Adapter)
-          image: luna-pwa:v0.1.32
+          image: luna-pwa:v0.1.41
           imagePullPolicy: Never
           ports:
             - name: http
@@ -102,12 +102,12 @@ spec:
             - name: TS_ENABLE_HEALTH_CHECK
               value: "true"
           securityContext:
-            # containerboot chmod't sein State-Verzeichnis selbst — als
-            # emptyDir gehört das root:root, ohne Root-User (bzw. CAP_FOWNER)
-            # schlägt das fehl und tailscaled startet mit "unhealthy state
-            # store". Pod-weites runAsNonRoot/runAsUser 101 (für den
-            # nginx-Container gedacht) hier bewusst für diesen einen
-            # Container überschrieben.
+            # containerboot chmod't sein State-Verzeichnis selbst — das
+            # gehört root:root (auch beim local-path-PVC unten), ohne
+            # Root-User (bzw. CAP_FOWNER) schlägt das fehl und tailscaled
+            # startet mit "unhealthy state store". Pod-weites
+            # runAsNonRoot/runAsUser 101 (für den nginx-Container gedacht)
+            # hier bewusst für diesen einen Container überschrieben.
             runAsNonRoot: false
             runAsUser: 0
             runAsGroup: 0
@@ -145,7 +145,8 @@ spec:
         - name: tmp
           emptyDir: {}
         - name: ts-state
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: luna-pwa-ts-state
         - name: ts-tmp
           emptyDir: {}
         - name: ts-config
