@@ -7,7 +7,7 @@
   "schedule": ["every weekend"],
   "labels": ["dependencies", "renovate"],
   "assignees": ["Guppy997"],
-  "enabledManagers": ["helmv3", "argocd", "docker-compose", "kubernetes", "github-actions"],
+  "enabledManagers": ["helmv3", "helm-values", "argocd", "docker-compose", "kubernetes", "github-actions"],
   "helmv3": {
     "managerFilePatterns": [
       "/managed-service-catalog/helm/.+/Chart\\.yaml$/",
@@ -28,6 +28,12 @@
     ]
   },
   "packageRules": [
+    {
+      "description": "helm-values nur für Image-Overrides der eigenen Apps (z. B. Homepage). In den Katalogen stehen Beispiel-Images und Overrides deaktivierter Dienste",
+      "matchManagers": ["helm-values"],
+      "matchFileNames": ["customer-service-catalog/**", "managed-service-catalog/**"],
+      "enabled": false
+    },
     {
       "description": "Lokal gebaute Images (nur auf dem Pi, imagePullPolicy: Never) — kein Registry-Lookup möglich",
       "matchPackageNames": ["luna-pwa", "luna-adapter"],

@@ -2,7 +2,7 @@
 # daher Image-Pin hier statt Chart-Bump
 image:
   repository: ghcr.io/gethomepage/homepage
-  tag: v1.13.2
+  tag: v2.4.0
 
 enableRbac: true
 
