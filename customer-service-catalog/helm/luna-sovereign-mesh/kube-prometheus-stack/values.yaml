@@ -233,6 +233,11 @@ kube-prometheus-stack:
       additionalLabels:
         monitoring.instance: luna-sovereign-mesh-dev
   grafana:
+    # Grafana-Chart 13 (ab kube-prometheus-stack 89) rendert sonst einen
+    # Helm-Test-Pod (bats) ohne securityContext — den bräuchte hier niemand
+    # und Kyverno würde ihn ablehnen.
+    testFramework:
+      enabled: false
     resources:
       requests:
         memory: 100Mi
