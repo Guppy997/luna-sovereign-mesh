@@ -10,4 +10,4 @@ dependencies:
     version: 0.0.7
   - name: kyverno
     repository: https://kyverno.github.io/kyverno
-    version: 3.8.2
+    version: 3.9.1
