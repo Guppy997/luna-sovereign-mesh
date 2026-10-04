@@ -60,20 +60,22 @@ sops -d clusters/dev/secrets/kubara-env-secret.yaml
 
 ## Backup
 
-A daily systemd timer runs at 03:00 on the Pi host and writes to a USB stick mounted at `/mnt/backup` (57 GB exFAT, auto-mounted via `/etc/fstab`).
+A daily cron job (`/etc/cron.d/pi-backup`, 03:00) runs `/home/aaron/backup.sh` on the Pi host. It writes one directory per day to a USB stick mounted at `/mnt/backup` (57 GB, auto-mounted via `/etc/fstab`): `/mnt/backup/<YYYY-MM-DD>/`.
 
-| What | How | Kept |
-|---|---|---|
-| All Kubernetes secrets | `kubectl get secrets -A -o yaml` | 90 days |
-| PostgreSQL databases | `pg_dump` via `kubectl exec` (plane + affine) | 90 days |
-| Vaultwarden data | Direct copy from k3s PV (`db.sqlite3` + attachments) | 90 days |
-| MinIO file uploads (Plane) | Direct copy from k3s PV | 90 days |
-| Affine blob storage | Direct copy from k3s PV | 90 days |
-| Beaver Habits data | Direct copy from k3s PV | 90 days |
+| What | How |
+|---|---|
+| PostgreSQL databases (Plane, AFFiNE) | `pg_dump` via `kubectl exec` |
+| Vaultwarden | consistent SQLite snapshot (`.backup`) + attachments, age-encrypted |
+| AFFiNE file storage and config | copied from the PV, config age-encrypted |
+| MinIO uploads (Plane), Beaver Habits | copied from the PV |
+| Lern-PWA, Fitness-PWA | consistent SQLite snapshots |
+| Home Assistant, Pi-hole | config, database, gravity |
+| All Kubernetes secrets | `kubectl get secrets -A`, age-encrypted |
+| SOPS age key | encrypted to a separate recovery key only |
 
-Each daily snapshot is ~10 MB. At 90-day retention the USB stick holds roughly 900 MB of backup data.
+Everything is kept for 14 days (`RETENTION_DAYS`). A daily set is about 540 MB. Failures are pushed to ntfy.
 
-Script: `/usr/local/bin/kubara-backup.sh` — Log: `/mnt/backup/kubara-backup/backup.log`
+Log: `/mnt/backup/backup.log`
 
 ### What is NOT backed up here
 
