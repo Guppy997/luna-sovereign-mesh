@@ -44,7 +44,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: wait-for-postgres
-          image: busybox:1.36
+          image: busybox:1.38
           command:
             - sh
             - -c
@@ -62,7 +62,7 @@ spec:
             limits:
               memory: 32Mi
         - name: migrate
-          image: ghcr.io/toeverything/affine:stable@sha256:d9d145f9f47b862d1fa96e2a887052b5762846237f75fbb077be990ef646e05c
+          image: ghcr.io/toeverything/affine:stable@sha256:b649f5ce2384ffdf13c23bccf81d759e15973d59d0b0058af65d895a84373099
           command: [node, ./scripts/self-host-predeploy.js]
           env:
             - name: DATABASE_URL
@@ -98,7 +98,7 @@ spec:
               mountPath: /root/.cache
       containers:
         - name: affine
-          image: ghcr.io/toeverything/affine:stable@sha256:d9d145f9f47b862d1fa96e2a887052b5762846237f75fbb077be990ef646e05c
+          image: ghcr.io/toeverything/affine:stable@sha256:b649f5ce2384ffdf13c23bccf81d759e15973d59d0b0058af65d895a84373099
           env:
             - name: NODE_ENV
               value: production
