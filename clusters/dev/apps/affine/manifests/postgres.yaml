@@ -1,7 +1,22 @@
+# Daten von Postgres 16 — seit der Migration auf 18 (2026-10-04, Dump/Restore)
+# nicht mehr eingebunden, bleibt als Rückweg stehen. Entfernen, sobald 18 eine
+# Weile stabil läuft.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: affine-postgres-data
+  namespace: affine
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: affine-postgres-data-pg18
   namespace: affine
 spec:
   accessModes: [ReadWriteOnce]
@@ -67,7 +82,7 @@ spec:
               mountPath: /pgdata
       containers:
         - name: postgres
-          image: pgvector/pgvector:pg16
+          image: pgvector/pgvector:pg18
           env:
             - name: POSTGRES_DB
               value: affine
@@ -118,7 +133,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: affine-postgres-data
+            claimName: affine-postgres-data-pg18
         - name: run
           emptyDir: {}
         - name: tmp
