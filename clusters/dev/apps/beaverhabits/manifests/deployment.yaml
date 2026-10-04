@@ -73,7 +73,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: beaverhabits
-          image: daya0576/beaverhabits:0.9.1
+          image: daya0576/beaverhabits:0.10.0
           imagePullPolicy: IfNotPresent
           env:
             - name: HABITS_STORAGE
