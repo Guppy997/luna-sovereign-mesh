@@ -3,6 +3,9 @@ kind: Application
 metadata:
   name: luna-sovereign-mesh-homepage
   namespace: argocd
+  annotations:
+    # ServerSideApply + admission defaults (ESO extract.*Strategy) erzeugen sonst permanentes OutOfSync
+    argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhooks=true
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -24,6 +27,11 @@ spec:
   destination:
     name: luna-sovereign-mesh
     namespace: homepage
+  ignoreDifferences:
+    - group: external-secrets.io
+      kind: ExternalSecret
+      managedFieldsManagers:
+        - external-secrets
   syncPolicy:
     automated:
       prune: true
