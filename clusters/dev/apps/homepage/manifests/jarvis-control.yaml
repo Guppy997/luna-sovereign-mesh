@@ -112,7 +112,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: jarvis-control
-          image: node:22-alpine
+          image: node:24-alpine
           command: ["node", "/app/server.mjs"]
           ports:
             - containerPort: 8080
