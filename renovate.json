@@ -7,24 +7,24 @@
   "schedule": ["every weekend"],
   "labels": ["dependencies", "renovate"],
   "assignees": ["Guppy997"],
-  "enabledManagers": ["helmv3", "argocd", "docker-compose", "kubernetes"],
+  "enabledManagers": ["helmv3", "argocd", "docker-compose", "kubernetes", "github-actions"],
   "helmv3": {
-    "fileMatch": [
-      "managed-service-catalog/helm/.+/Chart\\.yaml$",
-      "clusters/dev/apps/.+/Chart\\.yaml$"
+    "managerFilePatterns": [
+      "/managed-service-catalog/helm/.+/Chart\\.yaml$/",
+      "/clusters/dev/apps/.+/Chart\\.yaml$/"
     ]
   },
   "argocd": {
-    "fileMatch": [
-      "clusters/dev/apps/.+\\.yaml$"
+    "managerFilePatterns": [
+      "/clusters/dev/apps/.+\\.yaml$/"
     ]
   },
   "docker-compose": {
-    "fileMatch": ["\\.yml$", "\\.yaml$"]
+    "managerFilePatterns": ["/\\.yml$/", "/\\.yaml$/"]
   },
   "kubernetes": {
-    "fileMatch": [
-      "clusters/dev/apps/.+/manifests/.+\\.yaml$"
+    "managerFilePatterns": [
+      "/clusters/dev/apps/.+/manifests/.+\\.yaml$/"
     ]
   },
   "packageRules": [
@@ -52,7 +52,7 @@
     },
     {
       "description": "Ignore Plane images: latest tag only, versioned images have incompatible architecture changes",
-      "matchPackagePatterns": ["makeplane/plane-.*"],
+      "matchPackageNames": ["/^makeplane\\/plane-/"],
       "enabled": false
     },
     {

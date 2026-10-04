@@ -8,17 +8,42 @@ metadata:
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
   ttlSecondsAfterFinished: 120
+  # Obergrenze: ein PostSync-Hook, der nie fertig wird, blockiert jeden
+  # weiteren Sync der App.
+  activeDeadlineSeconds: 300
+  backoffLimit: 2
   template:
     spec:
       restartPolicy: OnFailure
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: revalidate
-          image: busybox:1.36
+          image: busybox:1.38
           command:
             - /bin/sh
             - -c
             - |
-              until wget -qO- http://homepage.homepage.svc.cluster.local:3000/api/healthcheck 2>/dev/null; do
+              for i in $(seq 1 60); do
+                wget -qO- http://homepage.homepage.svc.cluster.local:3000/api/healthcheck >/dev/null 2>&1 && break
                 sleep 2
               done
               wget -qO- http://homepage.homepage.svc.cluster.local:3000/api/revalidate
+          # Ohne diese Felder lehnt Kyverno den Pod ab (Privilege Escalation,
+          # read-only Root-FS) — der Job bliebe dann ohne Pod ewig "Running".
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 5m
+              memory: 8Mi
+            limits:
+              memory: 16Mi
