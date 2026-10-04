@@ -73,7 +73,7 @@ spec:
         # kein NET_ADMIN nötig — läuft mit dem Rest des Pods unter Kyverno
         # Enforce (RO-rootfs, non-root, capabilities drop ALL).
         - name: ts-luna
-          image: tailscale/tailscale@sha256:f15d5d3f4a68773a853180b72496f70ba614b64de0878c43fe3da39fe0afba47
+          image: tailscale/tailscale@sha256:c507f3a2a6ab1cabd8d809b98edeb41edbd5c3fb6ad9632ffd098b4c7d0b4065
           env:
             - name: TS_AUTHKEY
               valueFrom:
