@@ -32,7 +32,7 @@ spec:
       containers:
         - name: pwa
           # Lokal gebautes ARM64-Image (nginx, statische SPA + /api-Proxy zum Adapter)
-          image: luna-pwa:v0.1.41
+          image: luna-pwa:v0.1.42
           imagePullPolicy: Never
           ports:
             - name: http
