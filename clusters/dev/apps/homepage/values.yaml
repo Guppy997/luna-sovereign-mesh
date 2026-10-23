@@ -177,6 +177,11 @@ config:
             description: Tägliche Einheit & Gym-Rotation
             icon: mdi-dumbbell-#10b981
             siteMonitor: https://fitness-pwa.tailddc8f7.ts.net/api/health
+        - Ausrichtung:
+            href: https://ausrichtung.tailddc8f7.ts.net
+            description: Persönliche Reflexion
+            icon: mdi-compass-outline-#d97706
+            siteMonitor: https://ausrichtung.tailddc8f7.ts.net/api/health
         - Home Assistant:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10010
             description: Smart Home Steuerung
