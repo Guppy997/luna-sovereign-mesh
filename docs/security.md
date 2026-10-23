@@ -60,20 +60,26 @@ sops -d clusters/dev/secrets/kubara-env-secret.yaml
 
 ## Backup
 
-A daily cron job (`/etc/cron.d/pi-backup`, 03:00) runs `/home/aaron/backup.sh` on the Pi host. It writes one directory per day to a USB stick mounted at `/mnt/backup` (57 GB, auto-mounted via `/etc/fstab`): `/mnt/backup/<YYYY-MM-DD>/`.
+A daily cron job (`/etc/cron.d/pi-backup`, 03:00) runs [`host/backup.sh`](../host/backup.sh) on the Pi host. It writes one directory per day to a USB stick mounted at `/mnt/backup` (57 GB, auto-mounted via `/etc/fstab`): `/mnt/backup/<YYYY-MM-DD>/`.
 
-| What | How |
+**Nothing is stored in plaintext on the stick.** It is exFAT, which has no file permissions, so encryption is the only protection if it is lost or stolen. Each source is first copied to a root-only staging directory on the SSD, including consistent SQLite snapshots (`.backup`), and then written to the stick as an age-encrypted archive. Database dumps are piped straight into age, so no plaintext dump exists even temporarily.
+
+| What | Archive |
 |---|---|
-| PostgreSQL databases (Plane, AFFiNE) | `pg_dump` via `kubectl exec` |
-| Vaultwarden | consistent SQLite snapshot (`.backup`) + attachments, age-encrypted |
-| AFFiNE file storage and config | copied from the PV, config age-encrypted |
-| MinIO uploads (Plane), Beaver Habits | copied from the PV |
-| Lern-PWA, Fitness-PWA | consistent SQLite snapshots |
-| Home Assistant, Pi-hole | config, database, gravity |
-| All Kubernetes secrets | `kubectl get secrets -A`, age-encrypted |
-| SOPS age key | encrypted to a separate recovery key only |
+| PostgreSQL databases (Plane, AFFiNE) | `<app>-postgres.sql.age` (`pg_dump` via `kubectl exec`) |
+| Vaultwarden | `vaultwarden-data.tar.age` (SQLite snapshot + attachments; vault entries are additionally end-to-end encrypted by the Bitwarden clients) |
+| AFFiNE file storage and config | `affine-storage.tar.age` |
+| MinIO uploads (Plane), Beaver Habits | `minio-data.tar.age`, `beaverhabits-data.tar.age` |
+| Lern-PWA, Fitness-PWA, Ausrichtung | `<pwa>.tar.age` (SQLite snapshot + data dir) |
+| Home Assistant, Pi-hole | `homeassistant.tar.age`, `pihole.tar.age` |
+| All Kubernetes secrets | `k8s-secrets.yaml.age` |
+| SOPS age key | `sops-age-key.txt.age`, encrypted to the recovery key **only** |
 
-Everything is kept for 14 days (`RETENTION_DAYS`). A daily set is about 540 MB. Failures are pushed to ntfy.
+Every archive except the SOPS key is encrypted to two recipients: the **recovery key**, whose private half is kept offline and never on the Pi, and the **SOPS key**, so an intact Pi can restore without fetching the offline key. Restore steps: [host/README.md](../host/README.md).
+
+Everything is kept for 14 days (`RETENTION_DAYS`). A daily set is about 530 MB and takes about 40 s. Failures are pushed to ntfy.
+
+**Known gap:** the stick sits in the Pi, so fire, theft or a power surge would take both. An off-site copy is still open.
 
 Log: `/mnt/backup/backup.log`
 
