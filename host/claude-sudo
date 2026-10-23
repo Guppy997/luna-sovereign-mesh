@@ -1,0 +1,59 @@
+#!/bin/bash
+# claude-sudo – gibt Claude Code (läuft als aaron) zeitlich begrenzt root ohne Passwort.
+#
+#   sudo claude-sudo [MINUTEN]   Fenster öffnen (Standard 30, erlaubt 1–240)
+#   sudo claude-sudo off         Fenster sofort schließen
+#   sudo claude-sudo status      Zeigen, ob ein Fenster offen ist
+#
+# Hintergrund: Der sudo-Cache von "sudo -v" gilt nur für das eigene Terminal,
+# Claudes Shell profitiert davon nicht. Deshalb eine befristete sudoers-Datei,
+# die ein systemd-Timer nach Ablauf wieder löscht.
+set -euo pipefail
+
+FILE=/etc/sudoers.d/zz-claude-temp
+UNIT=claude-sudo-expire
+USER_NAME=aaron
+
+[ "$(id -u)" -eq 0 ] || { echo "Bitte mit sudo aufrufen: sudo claude-sudo ${1:-30}" >&2; exit 1; }
+
+close_window() {
+    systemctl stop "$UNIT.timer" "$UNIT.service" 2>/dev/null || true
+    systemctl reset-failed "$UNIT.timer" "$UNIT.service" 2>/dev/null || true
+    rm -f "$FILE"
+}
+
+case "${1:-30}" in
+    off)
+        close_window
+        echo "Claude-Freigabe beendet. Claude hat keine root-Rechte mehr."
+        ;;
+    status)
+        if [ -f "$FILE" ]; then
+            echo "Freigabe AKTIV."
+            systemctl list-timers "$UNIT.timer" --no-pager 2>/dev/null | sed -n '1,2p'
+        else
+            echo "Keine Freigabe aktiv. Claude hat keine root-Rechte."
+        fi
+        ;;
+    *)
+        MIN="$1"
+        if ! [[ "$MIN" =~ ^[0-9]+$ ]] || [ "$MIN" -lt 1 ] || [ "$MIN" -gt 240 ]; then
+            echo "Minuten müssen eine Zahl zwischen 1 und 240 sein." >&2
+            exit 1
+        fi
+        close_window
+        TMP=$(mktemp)
+        echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL   # befristet durch claude-sudo" > "$TMP"
+        if ! visudo -cqf "$TMP"; then
+            rm -f "$TMP"
+            echo "sudoers-Prüfung fehlgeschlagen, nichts geändert." >&2
+            exit 1
+        fi
+        install -o root -g root -m 0440 "$TMP" "$FILE"
+        rm -f "$TMP"
+        systemd-run --quiet --unit="$UNIT" --on-active="${MIN}m" \
+            --description="Claude-sudo-Freigabe beenden" /bin/rm -f "$FILE"
+        echo "Claude hat jetzt root-Rechte bis $(date -d "+${MIN} min" '+%H:%M') Uhr (${MIN} Min)."
+        echo "Vorzeitig beenden: sudo claude-sudo off"
+        ;;
+esac
