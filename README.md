@@ -5,7 +5,7 @@
 
 A self-hosted, privacy-first AI infrastructure built on Kubernetes with a strict GitOps-only workflow. All secrets are encrypted before they touch version control — no plaintext credentials, ever.
 
-> **Short on time?** The [incident postmortems](#incident-postmortems) are the most representative part of this repo — seven write-ups of things that actually broke on a single-node cluster, with the numbers and the fixes. Start with [the Argo CD OOM crash loop](docs/incidents/2026-06-12-argocd-oom-crashloop.md) (1,343 OOM kills nobody noticed) or [the thermal cascade](docs/incidents/2026-06-20-thermal-throttle-cascade-crashloop.md) (85.6 °C → every pod loses the API at once). For the design reasoning instead, go to [docs/security.md](docs/security.md).
+> **Short on time?** The [incident postmortems](#incident-postmortems) are the most representative part of this repo — eight write-ups of things that actually broke on a single-node cluster, with the numbers and the fixes. Start with [the Argo CD OOM crash loop](docs/incidents/2026-06-12-argocd-oom-crashloop.md) (1,343 OOM kills nobody noticed) or [the thermal cascade](docs/incidents/2026-06-20-thermal-throttle-cascade-crashloop.md) (85.6 °C → every pod loses the API at once). For the design reasoning instead, go to [docs/security.md](docs/security.md).
 
 ## Highlights
 
@@ -13,7 +13,7 @@ A self-hosted, privacy-first AI infrastructure built on Kubernetes with a strict
 - **No plaintext secrets, enforced.** SOPS + age encrypt everything under `secrets/`; CI rejects unencrypted secret files and key or token patterns anywhere else.
 - **Every change is schema-checked before it reaches the cluster.** CI validates the app manifests and renders every catalog chart the way Argo CD does, then checks the output with kubeconform — Renovate's auto-merged updates included.
 - **Nothing is exposed to the internet.** All access goes through a Tailscale tailnet; no port forwarding, no Funnel.
-- **Seven postmortems** of real failures, with root causes, numbers and what changed afterwards.
+- **Eight postmortems** of real failures, with root causes, numbers and what changed afterwards.
 
 ## Contents
 
@@ -112,6 +112,7 @@ Things that broke, why they broke, and what changed as a result — written up h
 | 2026-06-29 | [Cooling upgrade + resource optimisation](docs/incidents/2026-06-29-cooling-upgrade-resource-optimisation.md) | Planned change | 3D-printed enclosure + Noctua A6x25: 43.9 °C with all services back; memory requests tuned |
 | 2026-07-05 | [Expired GitHub token → Argo CD sync blindness](docs/incidents/2026-07-05-argocd-github-token-expiry.md) | All 17 apps stuck on `Sync: Unknown` behind a generic-looking alert | Token rotated, all apps resynced within 30 s |
 | 2026-07-05 | [DNS cascade during AI-HAT driver install](docs/incidents/2026-07-05-dns-cascade-hailo-install.md) | MagicDNS SERVFAIL; containerd, CoreDNS, Argo CD and exit-node clients lost resolution | Tailnet nameservers, Pi-hole-first host DNS, blackbox DNS alerting |
+| 2026-10-23 | [Memory pressure alert → Plane process diet](docs/incidents/2026-10-23-memory-pressure-plane-process-diet.md) | `NodeMemoryMajorPagesFaults`, ~1 GiB RAM left; Plane at ~700 MiB, ~40 % of it duplicate Python processes | 1 Uvicorn worker + Celery `solo` pool: Plane ~700 → ~430 MiB; unused images pruned, disk 75 % → 31 % |
 
 Further reading: [docs/security.md](docs/security.md) covers the "why" behind every security decision in detail.
 
@@ -188,6 +189,7 @@ In active use since June 2026 on a single node — the core platform (GitOps, ze
 
 **Latest milestones:**
 
+- **Plane process diet** — a memory-pressure alert led to `ps` inside the pods instead of just `kubectl top`: ~40 % of Plane's ~700 MiB was duplicate Python workers. One Uvicorn worker and a Celery `solo` pool cut Plane to ~430 MiB with no loss of function, and pruning 180 unreferenced images took the disk from 75 % to 31 %.
 - **Monitoring gap closed** — node-exporter was deployed but never scraped, so 26 host-level alert rules (CPU, RAM, disk, temperature) had been silently evaluating against no data. Found by auditing alert rules against live targets rather than trusting a green dashboard.
 - **Backup consolidation** — three overlapping backup paths merged into one script; credentials encrypted with age before they touch the USB medium; **restore verified end-to-end** for the first time, not just assumed.
 - **Housekeeping** — journald capped (was unbounded at 10% of disk), unattended-upgrade reports moved from a non-existent MTA to ntfy, a failing `unbound-resolvconf` unit retired.
