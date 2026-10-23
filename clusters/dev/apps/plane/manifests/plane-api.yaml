@@ -187,8 +187,9 @@ data:
   SENTRY_DSN: ""
   EMAIL_BACKEND: "django.core.mail.backends.dummy.EmailBackend"
   SITE_ID: "1"
-  # Single-User: 2 Worker reichen (siehe Cooling-Postmortem 2026-06-29: 6->3)
-  GUNICORN_WORKERS: "2"
+  # Single-User: 1 Uvicorn-Worker reicht (async). Historie: 6->3 Cooling-Postmortem
+  # 2026-06-29, 2->1 RAM-Diaet 2026-10-23 (~130 MB gespart)
+  GUNICORN_WORKERS: "1"
   ENABLE_MAGIC_LINK_LOGIN: "0"
   ENABLE_EMAIL_PASSWORD: "1"
   AMQP_URL: "redis://redis:6379/"
