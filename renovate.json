@@ -35,8 +35,8 @@
       "enabled": false
     },
     {
-      "description": "Lokal gebaute Images (nur auf dem Pi, imagePullPolicy: Never) — kein Registry-Lookup möglich",
-      "matchPackageNames": ["luna-pwa", "luna-adapter"],
+      "description": "Eigene Images in der privaten ghcr (Luna per GitHub Action, MinIO/mc als Spiegel) — Versionen werden von Hand gehoben",
+      "matchPackageNames": ["ghcr.io/guppy997/luna-pwa", "ghcr.io/guppy997/luna-adapter", "ghcr.io/guppy997/minio", "ghcr.io/guppy997/mc"],
       "enabled": false
     },
     {

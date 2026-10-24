@@ -42,9 +42,10 @@ and k3s ServiceLB (sysctls) are rejected at admission. Moving the exclusions to 
 
 ## MinIO images are no longer on Docker Hub
 
-`minio/minio` and `minio/mc` return *repository does not exist*. Both run with `imagePullPolicy: IfNotPresent`
-from the image cached on the node. If the node's image store is lost, MinIO will not start again — a new
-image source or a replacement is needed.
+`minio/minio` and `minio/mc` return *repository does not exist*. The last cached images were mirrored 1:1 to
+the private `ghcr.io/guppy997/minio` and `ghcr.io/guppy997/mc` (same tags), pulled with the `ghcr-pull`
+secret from `clusters/dev/secrets/`. That keeps MinIO restorable, but it gets no further updates; a
+replacement is still open.
 
 ## Postgres 16 → 18 (2026-10-04)
 

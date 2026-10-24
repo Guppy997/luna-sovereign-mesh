@@ -19,15 +19,18 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000      # 'node'-User im node:20-alpine-Image
+        runAsUser: 1000      # 'node'-User im node:24-alpine-Image
         runAsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
+      # Private ghcr-Images; Secret aus clusters/dev/secrets/luna-pwa-ghcr-pull.yaml
+      imagePullSecrets:
+        - name: ghcr-pull
       containers:
         - name: adapter
-          # Lokal gebautes ARM64-Image (in containerd importiert) -> kein Registry-Pull
-          image: luna-adapter:v0.1.12
-          imagePullPolicy: Never
+          # ARM64-Image, gebaut von der GitHub Action im Repo luna-pwa
+          image: ghcr.io/guppy997/luna-adapter:v0.1.12
+          imagePullPolicy: IfNotPresent
           env:
             - name: OPENCLAW_WS
               value: "ws://100.87.126.56:18789"

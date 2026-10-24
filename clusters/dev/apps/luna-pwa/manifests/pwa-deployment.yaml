@@ -29,11 +29,15 @@ spec:
         fsGroup: 101
         seccompProfile:
           type: RuntimeDefault
+      # Private ghcr-Images; Secret aus clusters/dev/secrets/luna-pwa-ghcr-pull.yaml
+      imagePullSecrets:
+        - name: ghcr-pull
       containers:
         - name: pwa
-          # Lokal gebautes ARM64-Image (nginx, statische SPA + /api-Proxy zum Adapter)
-          image: luna-pwa:v0.1.43
-          imagePullPolicy: Never
+          # ARM64-Image (nginx, statische SPA + /api-Proxy zum Adapter), gebaut von der
+          # GitHub Action im Repo luna-pwa
+          image: ghcr.io/guppy997/luna-pwa:v0.1.43
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8080
