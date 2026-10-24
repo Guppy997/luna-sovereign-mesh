@@ -21,7 +21,7 @@
 #   age -d -i <key> lern-pwa.tar.age | tar -x -C <ziel>
 # <key> ist der Recovery-Key (offline) oder, auf einem intakten Pi, der SOPS-Key.
 
-set -euo pipefail
+set -Eeuo pipefail
 
 BACKUP_ROOT="/mnt/backup"
 DATE=$(date +%Y-%m-%d)
