@@ -27,6 +27,7 @@ A self-hosted, privacy-first AI infrastructure built on Kubernetes with a strict
 - [Target Hardware](#target-hardware)
 - [Status](#status)
 - [Running Services](#running-services)
+- [How This Was Built](#how-this-was-built)
 - [License](#license)
 
 ## What This Project Is
@@ -224,6 +225,14 @@ All services are reachable exclusively from inside the tailnet, routed by Traefi
 </details>
 
 The `tailscale serve` port map is not GitOps-managed — after a state loss, restore it with [`scripts/apply-tailscale-serve.sh`](scripts/apply-tailscale-serve.sh) (source of truth for the mapping).
+
+## How This Was Built
+
+Built with AI assistance (Claude). Idea, architecture, requirements, testing and operations are mine; every change is reviewed and versioned.
+
+Security issues: please report them privately, see [SECURITY.md](SECURITY.md).
+
+**Repository history:** On 2026-10-24 the history was moved to a fresh repository to remove a private email address from the commit metadata. Commits, dates and contents are unchanged. Pull request numbers in older commit messages refer to the archived, private repository.
 
 ## License
 
