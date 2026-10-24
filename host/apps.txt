@@ -1,0 +1,6 @@
+# Host-Apps per Docker Compose (nicht im Cluster): <verzeichnis unter ~>  <git-repo>
+# Die Daten (data/) kommen mit restore.sh aus dem Backup, der Tailscale-Auth-Key für
+# den Sidecar steht in ~/<app>/.env und muss nach einem Neuaufbau neu erzeugt werden.
+lern-pwa     https://github.com/Guppy997/lern-pwa.git
+fitness-pwa  https://github.com/Guppy997/fitness-pwa.git
+ausrichtung  https://github.com/Guppy997/ausrichtung.git

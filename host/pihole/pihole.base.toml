@@ -1,0 +1,32 @@
+# Pi-hole v6: Grundkonfiguration für eine Neuinstallation (bootstrap.sh legt sie vor
+# dem unbeaufsichtigten Installer nach /etc/pihole/pihole.toml).
+#
+# Enthält nur die Abweichungen vom Default (Ist-Stand 2026-10-24). Bewusst NICHT hier:
+# Passwort-Hashes, TOTP-Secret, lokale DNS-Einträge (dns.hosts, cnameRecords) und die
+# Blocklisten. Die kommen mit `restore.sh` aus dem verschlüsselten Backup, das
+# /etc/pihole vollständig enthält.
+
+[dns]
+  # Unbound auf dem Pi als einziger Upstream (host/unbound/pi-hole.conf)
+  upstreams = [
+    "127.0.0.1#5335"
+  ]
+
+[webserver]
+  # 80/443 gehören Traefik (k3s ServiceLB); die Admin-Oberfläche liegt auf 8081/8443
+  # und ist per `tailscale serve` als :10002 erreichbar
+  port = "8081o,8443os,[::]:8081o,[::]:8443os"
+  headers = [
+    "X-DNS-Prefetch-Control: off",
+    "Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;",
+    "X-Frame-Options: DENY",
+    "X-XSS-Protection: 0",
+    "X-Content-Type-Options: nosniff",
+    "Referrer-Policy: strict-origin-when-cross-origin"
+  ]
+
+[misc]
+  # Tailnet-Namen an MagicDNS weiterreichen, alles andere über Unbound
+  dnsmasq_lines = [
+    "server=/tailddc8f7.ts.net/100.100.100.100"
+  ]
