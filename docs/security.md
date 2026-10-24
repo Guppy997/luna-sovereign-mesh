@@ -46,17 +46,13 @@ The cluster is not reachable from the internet **or** from the local network —
 
 ## Disaster Recovery
 
-The full stack is recoverable from:
-1. This GitHub repository (encrypted secrets included)
-2. The Age private key (stored offline, separate from the repo)
+The full stack is recoverable from three things:
 
-Recovery steps on a new machine:
-```bash
-git clone https://github.com/Guppy997/luna-sovereign-mesh.git
-# Restore Age private key to:
-# ~/.config/sops/age/keys.txt
-sops -d clusters/dev/secrets/kubara-env-secret.yaml
-```
+1. **This repository:** cluster configuration, host configuration (`host/`) and every hand-made Kubernetes secret, SOPS-encrypted under `clusters/dev/secrets/`.
+2. **An age private key:** either the Pi's SOPS key or the offline recovery key. Every SOPS file and every backup archive is encrypted to both, so either one is enough.
+3. **The USB backup stick:** the data, see [Backup](#backup).
+
+`./bootstrap.sh` rebuilds host and cluster, and `./restore.sh latest` puts the data back. The full walkthrough from an empty SD card, including what to keep offline, is in **[disaster-recovery.md](disaster-recovery.md)**.
 
 ## Backup
 
