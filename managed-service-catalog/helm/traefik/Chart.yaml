@@ -5,7 +5,7 @@ version: 1.1.0
 description: This Chart deploys traefik.
 dependencies:
   - name: traefik
-    version: 41.6.1
+    version: 41.7.1
     repository: oci://ghcr.io/traefik/helm
   - name: template-library
     repository: file://../template-library
