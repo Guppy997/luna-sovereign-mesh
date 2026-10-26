@@ -26,10 +26,18 @@ spec:
             summary: "Pi-hole DNS not answering"
             description: "Blackbox DNS probe against Pi-hole (192.168.178.117:53) has failed for 3 minutes. Pi-hole is the single DNS upstream for LAN, tailnet and cluster — fallbacks (Mullvad/Cloudflare/8.8.8.8) are kicking in, but sovereignty is degraded and ts.net resolution may fail. Check pihole-FTL on the host (docs/incidents/2026-07-05-dns-cascade-hailo-install.md)."
         - alert: PiSwapHigh
-          expr: (1 - (node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes)) * 100 > 50
+          expr: (1 - (node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes)) * 100 > 85
           for: 10m
           labels:
             severity: warning
           annotations:
             summary: "Pi swap usage high ({{ $value | printf \"%.0f\" }}%)"
-            description: "Swap has been above 50% for 10 minutes — memory pressure building; at this level the Pi has been observed thrashing (2026-07-14: Tailscale-serve timeouts at ~52% swap). Check for runaway pods (docs/incidents/2026-06-20-thermal-throttle-cascade-crashloop.md)."
+            description: "zram swap has been above 85% for 10 minutes — little compressed overflow left, OOM kills become likely. With vm.swappiness=100 (since 2026-10-26) a high zram fill level is intended; PiMemoryPressure is the thrashing signal. Check for runaway pods (docs/incidents/2026-10-26-loki-sidecar-reupgrade-filecache-thrashing.md)."
+        - alert: PiMemoryPressure
+          expr: rate(node_pressure_memory_stalled_seconds_total[5m]) > 0.10
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pi memory pressure high ({{ $value | humanizePercentage }} of time fully stalled)"
+            description: "All tasks have been stalled on memory for more than 10% of the time over 10 minutes (PSI full) — the node is thrashing. Check working sets per namespace and recent rollouts (docs/incidents/2026-10-26-loki-sidecar-reupgrade-filecache-thrashing.md)."
