@@ -32,7 +32,7 @@ spec:
             severity: warning
           annotations:
             summary: "Pi swap usage high ({{ $value | printf \"%.0f\" }}%)"
-            description: "zram swap has been above 85% for 10 minutes — little compressed overflow left, OOM kills become likely. With vm.swappiness=100 (since 2026-10-26) a high zram fill level is intended; PiMemoryPressure is the thrashing signal. Check for runaway pods (docs/incidents/2026-10-26-loki-sidecar-reupgrade-filecache-thrashing.md)."
+            description: "zram swap has been above 85% for 10 minutes — little compressed overflow left, OOM kills become likely. zram fill level alone says little about thrashing; PiMemoryPressure (PSI) is the thrashing signal. Check for runaway pods (docs/incidents/2026-10-26-loki-sidecar-reupgrade-swappiness-test.md)."
         - alert: PiMemoryPressure
           expr: rate(node_pressure_memory_stalled_seconds_total[5m]) > 0.10
           for: 10m
@@ -40,4 +40,4 @@ spec:
             severity: warning
           annotations:
             summary: "Pi memory pressure high ({{ $value | humanizePercentage }} of time fully stalled)"
-            description: "All tasks have been stalled on memory for more than 10% of the time over 10 minutes (PSI full) — the node is thrashing. Check working sets per namespace and recent rollouts (docs/incidents/2026-10-26-loki-sidecar-reupgrade-filecache-thrashing.md)."
+            description: "All tasks have been stalled on memory for more than 10% of the time over 10 minutes (PSI full) — the node is thrashing. Check working sets per namespace and recent rollouts (docs/incidents/2026-10-26-loki-sidecar-reupgrade-swappiness-test.md)."

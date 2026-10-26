@@ -114,6 +114,7 @@ Things that broke, why they broke, and what changed as a result — written up h
 | 2026-07-05 | [Expired GitHub token → Argo CD sync blindness](docs/incidents/2026-07-05-argocd-github-token-expiry.md) | All 17 apps stuck on `Sync: Unknown` behind a generic-looking alert | Token rotated, all apps resynced within 30 s |
 | 2026-07-05 | [DNS cascade during AI-HAT driver install](docs/incidents/2026-07-05-dns-cascade-hailo-install.md) | MagicDNS SERVFAIL; containerd, CoreDNS, Argo CD and exit-node clients lost resolution | Tailnet nameservers, Pi-hole-first host DNS, blackbox DNS alerting |
 | 2026-10-23 | [Memory pressure alert → Plane process diet](docs/incidents/2026-10-23-memory-pressure-plane-process-diet.md) | `NodeMemoryMajorPagesFaults`, ~1 GiB RAM left; Plane at ~700 MiB, ~40 % of it duplicate Python processes | 1 Uvicorn worker + Celery `solo` pool: Plane ~700 → ~430 MiB; unused images pruned, disk 75 % → 31 % |
+| 2026-10-26 | [Reverted Loki upgrade came back + failed swappiness experiment](docs/incidents/2026-10-26-loki-sidecar-reupgrade-swappiness-test.md) | Renovate reopened a reverted chart bump; rules sidecar CrashLoop, `loki-0` 0/2, major faults up to ~5,000/s | Unused rules sidecar disabled; PSI-based `PiMemoryPressure` alert; `swappiness=100` measured worse and rolled back |
 
 Further reading: [docs/security.md](docs/security.md) covers the "why" behind every security decision in detail.
 
