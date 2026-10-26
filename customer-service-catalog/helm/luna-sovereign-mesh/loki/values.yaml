@@ -19,6 +19,12 @@ loki:
     persistence:
       enabled: true
       size: 5Gi
+  # Rules sidecar off: no loki_rule ConfigMaps exist, and k8s-sidecar 2.14.1
+  # (chart >= 18.17.1) never becomes healthy on the Pi → liveness CrashLoop
+  # (reverted once in 456813f, re-merged via Renovate on 2026-10-26)
+  sidecar:
+    rules:
+      enabled: false
   monitoring:
     serviceMonitor:
       
