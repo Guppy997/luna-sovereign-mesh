@@ -9,7 +9,7 @@
 
 Three ntfy alerts arrived within eight minutes: `NodeMemoryMajorPagesFaults` (~1,600 major faults/s), then `KubePodNotReady` and `KubeStatefulSetReplicasMismatch` for `loki-0`. The Loki problem had been diagnosed and reverted two days earlier. A revert does not stop Renovate, though: it reopened the same chart upgrade, and the PR was merged again. The rules sidecar in that chart never becomes healthy on the Pi and served no purpose, so it was switched off instead of reverting a second time.
 
-While debugging the page faults, `vm.swappiness` was raised from 10 to 100 as an experiment. **That made things measurably worse** and was rolled back after 30 minutes. It is documented here because the reasoning behind it sounded right.
+While debugging the page faults, `vm.swappiness` was raised from 10 to 100 as an experiment. **That made things measurably worse** and was rolled back after 30 minutes. Rolling back was not enough, though: about 900 MiB of the k3s server's Go heap had been pushed into zram and kept thrashing until k3s was restarted. It is documented here because the reasoning behind the experiment sounded right.
 
 ## Timeline (CET)
 
@@ -24,6 +24,9 @@ While debugging the page faults, `vm.swappiness` was raised from 10 to 100 as an
 | 18:44 | PR #19 merged (sidecar off). Argo shows *Synced* but still renders the old chart |
 | 18:50 | Argo **hard refresh** → StatefulSet without sidecar, `loki-0` 1/1, stable since |
 | 19:04 | Swappiness experiment rolled back to 10 |
+| 19:18 | Still not recovering: ~9,300 major faults/s, ~7,000/s of them from `k3s-server` |
+| 19:20 | `systemctl restart k3s`: API back after ~20 s, all 56 pods kept running |
+| 19:28 | `NodeMemoryMajorPagesFaults` resolved, PSI full 0.2 % |
 
 ## Root Cause
 
@@ -41,7 +44,32 @@ Since boot, `/proc/vmstat` showed about 100× more file refaults than anonymous 
 | Swap-ins/s | 20–120 | 400–1,300 | **3,500–4,300** |
 | PSI full | ~1 % | 5–6 % | **8 %** |
 
-With swappiness 100, almost every major fault became a zram swap-in. The kernel pushed working memory out and immediately had to pull it back. On a node where the working set barely fits, there is no idle anonymous memory to park, so a higher swappiness just moves the thrashing from page cache to zram. After the rollback the rates trended back down (PSI 4 %, swap-ins ~1,900/s at 19:15) while the pages pushed out during the experiment were read back in.
+With swappiness 100, almost every major fault became a zram swap-in. The kernel pushed working memory out and immediately had to pull it back. On a node where the working set barely fits, there is no idle anonymous memory to park, so a higher swappiness just moves the thrashing from page cache to zram. At first the rates trended down after the rollback (PSI 4 %, swap-ins ~1,900/s at 19:15). That turned out to be a lull and not a recovery.
+
+## Aftermath: the k3s Heap Stuck in zram
+
+At 19:18 the node was at ~9,300 major faults/s, with swap-ins and swap-outs both around 9,000/s, while total swap usage stayed flat. That pattern means continuous churn, not swap draining back. Per-process `majflt` deltas from `/proc/<pid>/stat` pointed at one process:
+
+| Process | Major faults/s | Swapped out |
+|---|---|---|
+| `k3s-server` | ~7,000 | 309 MiB → 922 MiB within minutes |
+| `dockerd` | ~640 | 95 MiB |
+| `containerd-shim` (61) | ~480 | 89 MiB |
+
+`k3s-server` is one Go binary (API server, controllers, kubelet) with ~1.5 GiB of heap. During the experiment the kernel moved part of that heap to zram. **Go's garbage collector marks the entire live heap on every cycle**, so each GC touched the swapped pages and pulled them back in, which forced something else out. Swappiness 10 does not proactively bring pages back, so the loop did not end on its own.
+
+`swapoff`/`swapon` would have forced everything back into RAM, but that needs as much free memory as swap is in use: 1.75 GiB needed, ~1 GiB available, a likely OOM. Restarting k3s was the narrower fix. Containers keep running under containerd, and only the control plane is briefly unavailable.
+
+| | Before restart (19:18) | After restart (19:28) | 21:00–23:00 |
+|---|---|---|---|
+| Major faults/s | ~9,300 | 430 (incl. restart) | 46–224 |
+| Swap-ins/s | ~8,800 | 254 | 8–93 |
+| PSI full | 5–10 % | 0.2 % (10 s) | 0.2–0.7 % |
+| `k3s-server` swapped out | 922 MiB | 88 MiB | — |
+
+Side effects of the restart: the five Kyverno pods restarted once (they lost the API for a moment). Tailscale Serve config, all serve ports, cluster DNS and all Argo CD apps were unchanged.
+
+The restart also settled a suspicion: even fresh, `k3s-server` runs ~12,700 goroutines and ~1.1 GiB heap (~1.5 GiB RSS). That is its steady state in this cluster (100+ CRDs, 56 pods) and not a leak.
 
 ## Fix
 
@@ -62,7 +90,7 @@ Alerting (PR #19):
 
 As the [2026-10-23 finding](./2026-10-23-memory-pressure-plane-process-diet.md) noted, zram swap percentage is a poor thrashing signal. PSI measures the actual stall time.
 
-**Not changed:** `vm.swappiness` stays at 10. The Argo CD controller limit also stays: at 500–670 MiB it is within its documented steady state, and an undersized limit caused the [2026-06-12 crash loop](./2026-06-12-argocd-oom-crashloop.md).
+**Recovery:** `systemctl restart k3s` (see above). **Not changed:** `vm.swappiness` stays at 10. The Argo CD controller limit also stays: at 500–670 MiB it is within its documented steady state, and an undersized limit caused the [2026-06-12 crash loop](./2026-06-12-argocd-oom-crashloop.md).
 
 ## Lessons
 
@@ -70,4 +98,6 @@ As the [2026-10-23 finding](./2026-10-23-memory-pressure-plane-process-diet.md) 
 - **Switch off what you do not use.** The rules sidecar ran for four months with nothing to load. Without it, the upgrade would have been a no-op.
 - **Argo CD "Synced" can mean "synced to a stale render".** After a values-only change to a multi-source Helm app, verify the live object, and hard-refresh if it does not match.
 - **Test kernel tunables against a baseline, not a theory.** The refault ratio made the swappiness change look obvious, and 30 minutes of measurement showed the opposite. Runtime-only `sysctl` first, persist only after the numbers agree.
+- **Never let a Go heap swap.** A garbage-collected runtime touches its whole heap on every cycle, so swapped-out heap pages come straight back. Rolling back a swap tunable does not undo this; restarting the process does.
+- **Measure per process before acting node-wide.** `majflt` deltas from `/proc/<pid>/stat` took 20 seconds and pointed at a single process.
 - **The node has no slack left.** ~1 GiB available at steady state means any restart loop turns into node-wide pressure. The real lever is fewer resident workloads, not kernel tuning.
