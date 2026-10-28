@@ -275,6 +275,13 @@ kube-prometheus-stack:
       feature_toggles:
         kubernetesClientDashboardsFolders: false
         unifiedStorageDashboards: false
+      # Grafana startet jedes gebündelte Backend-Datasource-Plugin als eigenen
+      # Prozess (gpx_*) — 13 Stück, im Container-Limit von 256Mi mitgezählt.
+      # Genutzt werden nur prometheus, loki und alertmanager. Folge war ein
+      # Container bei 250/256Mi und 4 OOMKills (zuletzt 2026-10-25).
+      plugins:
+        disable_plugins: >-
+          cloudwatch,elasticsearch,grafana-azure-monitor-datasource,grafana-postgresql-datasource,grafana-pyroscope-datasource,grafana-testdata-datasource,graphite,influxdb,jaeger,mssql,mysql,opentsdb,stackdriver,tempo,zipkin
     additionalDataSources:
       - access: proxy
         isDefault: false

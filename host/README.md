@@ -18,6 +18,15 @@ sudo install -m 0644 host/pi-backup.cron /etc/cron.d/pi-backup
 sudo install -o root -g root -m 0755 host/claude-sudo /usr/local/sbin/claude-sudo
 ```
 
+## Tailscale listens on UDP 41642, not 41641
+
+`/etc/default/tailscaled` sets `PORT="41642"`. On the default port 41641 the Pi never got a direct connection to `open-claw` (Oracle) and all traffic went through the Frankfurt DERP relay. Packet captures on both ends showed that Oracle received the Pi's packets and answered, but the Fritzbox never delivered the replies. Other devices on the LAN also use 41641. A plain UDP hole-punch test on another port worked in both directions, so the Fritzbox can do NAT traversal in general and the problem was limited to that one port. After the change, `tailscale ping open-claw` goes direct (`via 130.61.77.195:41641`, ~10 ms).
+
+```bash
+sudo sed -i 's/^PORT=.*/PORT="41642"/' /etc/default/tailscaled
+sudo systemctl restart tailscaled
+```
+
 ## Restore one item from a backup
 
 ```bash
