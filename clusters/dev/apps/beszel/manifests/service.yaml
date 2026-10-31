@@ -6,6 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/name: beszel
 spec:
+  # Gepinnt: Tailscale Serve :10013 proxyt auf diese IP (direkt, ohne Traefik).
+  # Wert = bisher automatisch vergebene IP, das Pinnen ändert also nichts.
+  clusterIP: 10.43.73.18
   selector:
     app.kubernetes.io/name: beszel
   ports:
