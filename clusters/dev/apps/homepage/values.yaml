@@ -139,7 +139,7 @@ config:
             icon: mdi-check-circle-outline-#22c55e
             namespace: beaverhabits
             app: beaverhabits
-            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10009
+            siteMonitor: http://beaverhabits.beaverhabits.svc.cluster.local:8080
         - Luna Dashboard:
             href: https://luna-pwa.tailddc8f7.ts.net
             description: KI-Mitarbeiterin (OpenClaw)
@@ -152,21 +152,21 @@ config:
             icon: mdi-chart-timeline-variant-#1f2d3d
             namespace: plane
             app: plane-api
-            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10005
+            siteMonitor: http://plane-web.plane.svc.cluster.local:3000
         - AFFiNE:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10007
             description: Wiki & Notizen (lokal, mit Sync)
             icon: affine.png
             namespace: affine
             app: affine
-            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10007/api/health
+            siteMonitor: http://affine.affine.svc.cluster.local:3010/api/health
         - Vaultwarden:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10006
             description: Passwort-Manager (Bitwarden-kompatibel)
             icon: mdi-shield-key-#175DDC
             namespace: vaultwarden
             app: vaultwarden
-            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10006/alive
+            siteMonitor: http://vaultwarden.vaultwarden.svc.cluster.local/alive
         - Lern-PWA:
             href: https://lern-pwa.tailddc8f7.ts.net
             description: Fokus-Timer & Lernprojekte
@@ -186,7 +186,7 @@ config:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10010
             description: Smart Home Steuerung
             icon: home-assistant.png
-            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10010
+            siteMonitor: http://192.168.178.117:8123
         - Open Claw:
             # Ohne #token=: Hrefs landen im HTML jedes Browsers, auch auf dem
             # Wand-Tablet. Den Link mit Token nur als Lesezeichen auf den eigenen
@@ -246,7 +246,7 @@ config:
             icon: beszel.png
             namespace: beszel
             app: beszel
-            siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10008/api/health
+            siteMonitor: http://beszel.beszel.svc.cluster.local:8090/api/health
             widget:
               type: beszel
               url: http://beszel.beszel.svc.cluster.local:8090
