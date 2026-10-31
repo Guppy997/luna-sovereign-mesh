@@ -19,7 +19,7 @@ Nothing else, and nothing can reach the tablet: no ACL rule has it as a destinat
 
 ## Why the panel never gets a Traefik port
 
-The Traefik ports (10001, 10005–10009) pick the backend with `HeaderRegexp(X-Forwarded-Host, ...)`.
+The Traefik ports (10001, 10005 to 10009) pick the backend with `HeaderRegexp(X-Forwarded-Host, ...)`.
 `tailscale serve` overwrites a client-supplied `X-Forwarded-Host`, but builds it from the client's
 `Host` header. A client that may reach *one* Traefik port can therefore reach *all* Traefik services:
 
@@ -86,6 +86,34 @@ sudo k3s kubectl -n homepage rollout restart deploy/homepage
   MQTT off, URL filter in whitelist mode for the tailnet hostnames above.
 - Tailscale and FreeKiosk exempt from Doze (`dumpsys deviceidle whitelist +<package>`).
 - USB debugging and developer options off once the setup is done.
+
+## Provisioning
+
+The scripts in [scripts/wallpanel/](../scripts/wallpanel/) set up the tablet over USB with `adb`. The order matters:
+
+1. Turn on developer options and USB debugging, connect the tablet and tick **Always allow from this
+   computer**. Lock Mode blocks this prompt later on.
+2. `scripts/wallpanel/disable-packages.sh` disables every app in `disabled-packages.txt`;
+   `enable-all.sh` undoes it.
+3. Sign in to the Play Store with a dedicated account, update Android System WebView and install
+   Tailscale.
+4. Join the tailnet and tag the device `tag:wallpanel`. The Tailscale login opens a browser, so Chrome
+   has to be enabled for this step (`pm enable com.android.chrome`), then wiped with `pm clear` and
+   disabled again.
+5. Remove the Play Store account: `dpm set-device-owner` refuses while any account exists.
+6. Install the FreeKiosk APK from its GitHub release, check its SHA-256 against the release, and run
+   `adb shell dpm set-device-owner com.freekiosk/.DeviceAdminReceiver` before opening the app.
+7. `adb shell dumpsys deviceidle whitelist +com.tailscale.ipn`, and the same for `com.freekiosk`.
+8. Set the PIN and start URL in FreeKiosk, then run `scripts/wallpanel/freekiosk-apply.sh`. It asks for
+   the PIN and turns on Lock Mode, the in-page back button, start on boot and the URL whitelist.
+
+Pitfalls:
+
+- `adb shell` reads stdin, so inside a `while read` loop it swallows the rest of the list. The scripts
+  pass `< /dev/null`.
+- Android's toybox `nc` has no `-z`. Port test from the tablet: `printf x | nc -w 4 -q 1 <ip> <port>`.
+  A timeout means the policy drops the packet; "connection refused" means it passed and nothing listens.
+- With Lock Mode on, `adb shell dumpsys activity activities | grep mLockTaskModeState` shows `LOCKED`.
 
 ## Known trade-offs
 

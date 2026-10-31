@@ -98,6 +98,10 @@ Host services (outside Kubernetes)
 ├── Tailscale         — Zero-trust mesh VPN: the only way in
 └── cron (daily 03:00) — USB backup: DBs, secrets, file uploads
                          (credentials age-encrypted, 14-day retention)
+
+Devices in the tailnet
+└── Wall panel        (Galaxy Tab A7 in kiosk mode, tag:wallpanel,
+                       direct entry points only)
 ```
 
 ## Incident Postmortems
@@ -150,6 +154,7 @@ luna-sovereign-mesh/
 ├── .sops.yaml                       # Encryption rules — which files, which key
 ├── config.yaml                      # kubara cluster configuration
 ├── renovate.json                    # Dependency updates, patch auto-merge
+├── CHANGELOG.md                     # Notable changes (Keep a Changelog)
 ├── clusters/dev/
 │   ├── apps/                        # Argo CD Applications + plain manifests per app
 │   └── secrets/                     # SOPS-encrypted Kubernetes secrets
@@ -158,8 +163,10 @@ luna-sovereign-mesh/
 ├── docs/
 │   ├── security.md                  # Security design, disaster recovery, backups
 │   ├── operations.md                # Non-obvious operational behaviour
+│   ├── wallpanel.md                 # Wall panel: threat model, ports, provisioning
 │   └── incidents/                   # Postmortems
 └── scripts/                         # tailscale serve port map, SOPS helper
+    └── wallpanel/                   # Tablet provisioning (packages, FreeKiosk)
 ```
 
 **Written for this cluster:** the ten applications under `clusters/dev/apps/` (manifests, ingress routes, external secrets, alert rules, the daily health digest), the values in `customer-service-catalog/`, CI, Renovate config, scripts and all documentation.
@@ -175,6 +182,7 @@ Deliberate decisions that would look different on a multi-node production platfo
 - **Some image tags are mutable.** Plane's backend runs on `stable`, and Renovate skips Plane images because the versioned ones introduced incompatible changes (see `renovate.json`). `redis:8-alpine`, `postgres:18-alpine`, `pgvector/pgvector:pg18`, `node:24-alpine` and `busybox:1.38` are pinned to a major or minor version only. Everything else is pinned to a version or digest.
 - **Two images are built on the Pi.** `luna-pwa` and `luna-adapter` use `imagePullPolicy: Never` — there is no registry, so Renovate cannot track them.
 - **The `tailscale serve` port map lives outside GitOps.** It is host state in tailscaled; [`scripts/apply-tailscale-serve.sh`](scripts/apply-tailscale-serve.sh) is the source of truth and restores it.
+- **Traefik routes by header, not by port.** The Traefik `tailscale serve` ports pick the app from `X-Forwarded-Host`, which `tailscale serve` builds from the client's `Host` header. A client that may reach one Traefik port can therefore reach every Traefik app. Personal devices may reach every port anyway; restricted clients such as the wall panel get direct ports to a pinned ClusterIP instead. One Traefik entrypoint per port would close this properly.
 - **Auto-merge plus auto-sync.** Renovate patch updates merge without a human, and Argo CD applies them right away. CI is the only gate in between, which is why it validates schemas and not just syntax.
 - **Backups live on a single medium.** Daily backups go to a USB drive (credentials age-encrypted); an off-site copy is next on the list.
 
@@ -191,12 +199,13 @@ In active use since June 2026 on a single node — the core platform (GitOps, ze
 
 **Latest milestones:**
 
+- **Wall panel**: an old Galaxy Tab A7 (Android 12, no updates since June 2024) shows Homepage and Home Assistant in kiosk mode and is treated as untrusted. Its Tailscale tag reaches seven direct entry points and nothing else, and nothing can reach the tablet. Building it turned up that every Traefik port can be bypassed with a forged `Host` header, so restricted clients never get one. Details in [docs/wallpanel.md](docs/wallpanel.md).
 - **Plane process diet** — a memory-pressure alert led to `ps` inside the pods instead of just `kubectl top`: ~40 % of Plane's ~700 MiB was duplicate Python workers. One Uvicorn worker and a Celery `solo` pool cut Plane to ~430 MiB with no loss of function, and pruning 180 unreferenced images took the disk from 75 % to 31 %.
 - **Monitoring gap closed** — node-exporter was deployed but never scraped, so 26 host-level alert rules (CPU, RAM, disk, temperature) had been silently evaluating against no data. Found by auditing alert rules against live targets rather than trusting a green dashboard.
 - **Backup consolidation** — three overlapping backup paths merged into one script; credentials encrypted with age before they touch the USB medium; **restore verified end-to-end** for the first time, not just assumed.
 - **Housekeeping** — journald capped (was unbounded at 10% of disk), unattended-upgrade reports moved from a non-existent MTA to ntfy, a failing `unbound-resolvconf` unit retired.
 
-**Up next:** off-site copy of the encrypted backup set (currently single-medium), re-raise Prometheus retention now that thermal headroom exists, disable Tailscale node-key expiry before it triggers, move the Kyverno exclusions to CEL policies, find a new image source or replacement for MinIO (see [docs/operations.md](docs/operations.md)).
+**Up next:** off-site copy of the encrypted backup set (currently single-medium), re-raise Prometheus retention now that thermal headroom exists, disable Tailscale node-key expiry before it triggers, move the Kyverno exclusions to CEL policies, give Traefik one entrypoint per port instead of header matching, print a wall mount for the panel, find a new image source or replacement for MinIO (see [docs/operations.md](docs/operations.md)).
 
 ## Running Services
 
