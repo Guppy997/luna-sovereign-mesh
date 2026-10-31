@@ -26,6 +26,7 @@ declare -A SERVE=(
   [10009]=$TRAEFIK               # Beaver Habits
   [10010]=http://127.0.0.1:8123  # Home Assistant (Host)
   [10011]=http://127.0.0.1:8091  # Fitness-PWA (Host)
+  [10012]=http://10.43.100.12:3000 # Homepage direkt ohne Traefik, fürs Wand-Tablet (gepinnte ClusterIP)
 )
 
 for port in "${!SERVE[@]}"; do
