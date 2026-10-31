@@ -11,7 +11,9 @@
 # randomisierte Timer-Startzeit.
 set -euo pipefail
 
-NTFY_URL="https://raspberrypi-1.tailddc8f7.ts.net:10003/luna-alerts"
+# Intern über die gepinnte ClusterIP: tailscale serve nimmt ab 1.104 nur noch
+# Verbindungen über tailscale0 an, vom Host selbst kommt man dort nicht hin.
+NTFY_URL="http://10.43.235.81/luna-alerts"
 UU_LOG="/var/log/unattended-upgrades/unattended-upgrades.log"
 
 notify() {  # $1=title $2=tags $3=priority $4=body

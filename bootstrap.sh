@@ -23,7 +23,7 @@ export KUBECONFIG="$HOME/.kube/config"
 
 # Versionen = Ist-Stand des Pi am 2026-10-24
 K3S_VERSION="v1.35.9+k3s1"
-TAILSCALE_VERSION="1.102.5"   # auf dem Host bewusst gepinnt (Serve-Binding ab 1.104)
+# Tailscale nicht gepinnt: aktuelle stable-Version, danach Auto-Update (setup_tailscale)
 SOPS_VERSION="v3.13.1"
 YQ_VERSION="v4.54.1"
 KUBARA_VERSION="0.9.0"
@@ -77,17 +77,17 @@ install_packages() {
   id -nG | grep -qw docker || sudo usermod -aG docker aaron
   ok "Docker $(docker --version | awk '{print $3}' | tr -d ,)"
 
-  if [ "$(tailscale version 2>/dev/null | head -1)" != "$TAILSCALE_VERSION" ]; then
+  if ! command -v tailscale >/dev/null 2>&1; then
     curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/$(codename).noarmor.gpg" \
       | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
     curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/$(codename).tailscale-keyring.list" \
       | sudo tee /etc/apt/sources.list.d/tailscale.list >/dev/null
     sudo apt-get update -qq
-    sudo apt-mark unhold tailscale >/dev/null 2>&1 || true
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --allow-downgrades "tailscale=$TAILSCALE_VERSION" >/dev/null
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq tailscale >/dev/null
   fi
-  sudo apt-mark hold tailscale >/dev/null
-  ok "Tailscale $TAILSCALE_VERSION (gehalten)"
+  # Ein alter Hold aus der Zeit des 1.102-Pins würde das Auto-Update blockieren
+  sudo apt-mark unhold tailscale >/dev/null 2>&1 || true
+  ok "Tailscale $(tailscale version | head -1)"
 
   [ "$(sops --version 2>/dev/null | awk 'NR==1{print $2}')" = "${SOPS_VERSION#v}" ] \
     || install_bin /usr/local/bin/sops "https://github.com/getsops/sops/releases/download/$SOPS_VERSION/sops-$SOPS_VERSION.linux.arm64"
@@ -221,8 +221,10 @@ setup_tailscale() {
     warn "Tailscale ist noch nicht angemeldet. Den angezeigten Link im Browser öffnen:"
     sudo tailscale up --advertise-exit-node --accept-dns=true
   fi
-  # Kein Auto-Update: Die Version ist oben bewusst gepinnt (TAILSCALE_VERSION).
-  sudo tailscale set --auto-update=false >/dev/null 2>&1 || true
+  # Auto-Update an. Seit 1.104 nimmt tailscale serve nur noch Verbindungen über
+  # tailscale0 an; Host und Cluster sprechen deshalb interne Adressen an, nicht
+  # die serve-URLs (docs/operations.md).
+  sudo tailscale set --auto-update=true >/dev/null 2>&1 || true
   ok "Tailscale: $(tailscale status --json | jq -r '.Self.DNSName')"
 }
 
