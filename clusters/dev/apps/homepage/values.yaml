@@ -32,15 +32,7 @@ ingress:
 
 env:
   - name: HOMEPAGE_ALLOWED_HOSTS
-    value: "luna-sovereign-mesh-dev.luna.local,raspberrypi-1.tailddc8f7.ts.net,raspberrypi-1.tailddc8f7.ts.net:10001,raspberrypi-1.tailddc8f7.ts.net:10009,192.168.178.117,localhost,localhost:3000,homepage,homepage:3000,homepage.homepage.svc.cluster.local,homepage.homepage.svc.cluster.local:3000"
-  # OpenClaw-Gateway-Token für den Dashboard-Link (#token=). Kommt aus dem
-  # ExternalSecret openclaw-dashboard-token-es → Secret openclaw-dashboard-token
-  # (Master-Secret liegt manuell in der external-secrets-ns, NICHT in Git).
-  - name: HOMEPAGE_VAR_OPENCLAW_TOKEN
-    valueFrom:
-      secretKeyRef:
-        name: openclaw-dashboard-token
-        key: token
+    value: "luna-sovereign-mesh-dev.luna.local,raspberrypi-1.tailddc8f7.ts.net,raspberrypi-1.tailddc8f7.ts.net:10001,raspberrypi-1.tailddc8f7.ts.net:10009,192.168.178.117,localhost,localhost:3000,homepage,homepage:3000,homepage.homepage.svc.cluster.local,homepage.homepage.svc.cluster.local:3000,raspberrypi-1.tailddc8f7.ts.net:10012"
   # Beszel-Login fürs Widget. Username lag bis 2026-07-26 im Klartext in dieser
   # Datei — beide Hälften des Logins kommen jetzt aus demselben Secret
   # (manuell angelegt in ns homepage, NICHT in Git).
@@ -54,6 +46,14 @@ env:
       secretKeyRef:
         name: beszel-homepage-credentials
         key: password
+  # Pi-hole-App-Passwort fürs Statistik-Widget (manuell angelegt in ns homepage,
+  # NICHT in Git). optional: Homepage startet auch, solange das Secret fehlt.
+  - name: HOMEPAGE_VAR_PIHOLE_KEY
+    valueFrom:
+      secretKeyRef:
+        name: pihole-homepage-key
+        key: key
+        optional: true
   # Home-Assistant Long-Lived-Token fürs KI-Server-Widget (Jarvis an/aus).
   # ExternalSecret homeassistant-token-es → Secret homeassistant-token
   # (Master-Secret liegt manuell in der external-secrets-ns, NICHT in Git).
@@ -188,7 +188,10 @@ config:
             icon: home-assistant.png
             siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10010
         - Open Claw:
-            href: https://open-claw.tailddc8f7.ts.net/#token={{HOMEPAGE_VAR_OPENCLAW_TOKEN}}
+            # Ohne #token=: Hrefs landen im HTML jedes Browsers, auch auf dem
+            # Wand-Tablet. Den Link mit Token nur als Lesezeichen auf den eigenen
+            # Geräten ablegen (die Control UI merkt ihn sich nur pro Tab).
+            href: https://open-claw.tailddc8f7.ts.net/
             description: OpenClaw Control (Oracle, via Tailscale)
             icon: oracle.png
             siteMonitor: https://open-claw.tailddc8f7.ts.net
@@ -221,6 +224,13 @@ config:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10002/admin
             description: DNS & Ad-Blocking
             icon: pi-hole.png
+            # Statistik serverseitig über den Host-Port; der Key erreicht den
+            # Browser nie. Ohne Secret bleibt das Widget leer (env ist optional).
+            widget:
+              type: pihole
+              url: http://192.168.178.117:8081
+              version: 6
+              key: "{{HOMEPAGE_VAR_PIHOLE_KEY}}"
         - cert-manager:
             href: https://raspberrypi-1.tailddc8f7.ts.net:10001/argocd/applications/luna-sovereign-mesh-cert-manager
             description: TLS Zertifikate
@@ -230,7 +240,8 @@ config:
 
     - Monitoring:
         - Beszel:
-            href: https://raspberrypi-1.tailddc8f7.ts.net:10008
+            # :10013 statt Traefik :10008, damit der Link auch auf dem Wand-Tablet geht
+            href: https://raspberrypi-1.tailddc8f7.ts.net:10013
             description: Server Monitoring (CPU, RAM, Disk, Temp)
             icon: beszel.png
             namespace: beszel

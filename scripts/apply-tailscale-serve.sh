@@ -9,6 +9,10 @@
 #
 # Traefik-Ports (10001, 10005-10009) routen per X-Forwarded-Host-Matcher in
 # den IngressRoutes — siehe traefik/values.yaml (ClusterIP gepinnt).
+# Den Header leitet tailscale serve aus dem Host-Header des Clients ab: Über
+# JEDEN Traefik-Port erreicht man mit gefälschtem Host alle Traefik-Dienste.
+# Eingeschränkte Clients (Wand-Tablet) bekommen deshalb nur direkte Ports,
+# siehe docs/wallpanel.md.
 set -euo pipefail
 
 TRAEFIK=http://10.43.53.234:80 # gepinnte ClusterIP, siehe traefik/values.yaml
@@ -26,6 +30,8 @@ declare -A SERVE=(
   [10009]=$TRAEFIK               # Beaver Habits
   [10010]=http://127.0.0.1:8123  # Home Assistant (Host)
   [10011]=http://127.0.0.1:8091  # Fitness-PWA (Host)
+  [10012]=http://10.43.100.12:3000 # Homepage direkt ohne Traefik, fürs Wand-Tablet (gepinnte ClusterIP)
+  [10013]=http://10.43.73.18:8090 # Beszel direkt ohne Traefik, fürs Wand-Tablet (gepinnte ClusterIP)
 )
 
 for port in "${!SERVE[@]}"; do

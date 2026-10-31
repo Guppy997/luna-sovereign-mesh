@@ -27,6 +27,17 @@ None of these files contain secrets or personal data:
 | `apps/homeassistant/docker-compose.yml` | `~/homeassistant/` | Home Assistant (host network) |
 | `kubara.env` | merged into `../.env` | The non-secret half of kubara's `.env`; the secret half comes from `clusters/dev/secrets/kubara-env-secret.yaml` |
 
+## Tailscale listens on UDP 41642, not 41641
+
+`/etc/default/tailscaled` sets `PORT="41642"`. On the default port 41641 the Pi never got a direct connection to `open-claw` (Oracle) and all traffic went through the Frankfurt DERP relay. Packet captures on both ends showed that Oracle received the Pi's packets and answered, but the Fritzbox never delivered the replies. Other devices on the LAN also use 41641. A plain UDP hole-punch test on another port worked in both directions, so the Fritzbox can do NAT traversal in general and the problem was limited to that one port. After the change, `tailscale ping open-claw` goes direct (`via 130.61.77.195:41641`, ~10 ms).
+
+```bash
+sudo sed -i 's/^PORT=.*/PORT="41642"/' /etc/default/tailscaled
+sudo systemctl restart tailscaled
+```
+
+`../bootstrap.sh host` sets this as well.
+
 ## Restore one item by hand
 
 ```bash
