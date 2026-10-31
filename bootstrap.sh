@@ -209,11 +209,20 @@ setup_dns() {
 # ── Tailscale ────────────────────────────────────────────────────────────────
 setup_tailscale() {
   log "Tailscale"
+  # UDP 41642 statt 41641: Auf 41641 kommt keine Direktverbindung zu open-claw
+  # zustande, alles läuft dann übers DERP-Relay (siehe host/README.md).
+  if ! grep -qx 'PORT="41642"' /etc/default/tailscaled; then
+    sudo sed -i 's/^PORT=.*/PORT="41642"/' /etc/default/tailscaled
+    grep -qx 'PORT="41642"' /etc/default/tailscaled \
+      || echo 'PORT="41642"' | sudo tee -a /etc/default/tailscaled >/dev/null
+    sudo systemctl restart tailscaled
+  fi
   if ! tailscale status >/dev/null 2>&1; then
     warn "Tailscale ist noch nicht angemeldet. Den angezeigten Link im Browser öffnen:"
     sudo tailscale up --advertise-exit-node --accept-dns=true
   fi
-  sudo tailscale set --auto-update=true >/dev/null 2>&1 || true
+  # Kein Auto-Update: Die Version ist oben bewusst gepinnt (TAILSCALE_VERSION).
+  sudo tailscale set --auto-update=false >/dev/null 2>&1 || true
   ok "Tailscale: $(tailscale status --json | jq -r '.Self.DNSName')"
 }
 
