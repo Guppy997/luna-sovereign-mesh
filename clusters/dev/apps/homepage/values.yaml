@@ -33,14 +33,6 @@ ingress:
 env:
   - name: HOMEPAGE_ALLOWED_HOSTS
     value: "luna-sovereign-mesh-dev.luna.local,raspberrypi-1.tailddc8f7.ts.net,raspberrypi-1.tailddc8f7.ts.net:10001,raspberrypi-1.tailddc8f7.ts.net:10009,192.168.178.117,localhost,localhost:3000,homepage,homepage:3000,homepage.homepage.svc.cluster.local,homepage.homepage.svc.cluster.local:3000,raspberrypi-1.tailddc8f7.ts.net:10012"
-  # OpenClaw-Gateway-Token für den Dashboard-Link (#token=). Kommt aus dem
-  # ExternalSecret openclaw-dashboard-token-es → Secret openclaw-dashboard-token
-  # (Master-Secret liegt manuell in der external-secrets-ns, NICHT in Git).
-  - name: HOMEPAGE_VAR_OPENCLAW_TOKEN
-    valueFrom:
-      secretKeyRef:
-        name: openclaw-dashboard-token
-        key: token
   # Beszel-Login fürs Widget. Username lag bis 2026-07-26 im Klartext in dieser
   # Datei — beide Hälften des Logins kommen jetzt aus demselben Secret
   # (manuell angelegt in ns homepage, NICHT in Git).
@@ -188,7 +180,10 @@ config:
             icon: home-assistant.png
             siteMonitor: https://raspberrypi-1.tailddc8f7.ts.net:10010
         - Open Claw:
-            href: https://open-claw.tailddc8f7.ts.net/#token={{HOMEPAGE_VAR_OPENCLAW_TOKEN}}
+            # Ohne #token=: Hrefs landen im HTML jedes Browsers, auch auf dem
+            # Wand-Tablet. Den Link mit Token nur als Lesezeichen auf den eigenen
+            # Geräten ablegen (die Control UI merkt ihn sich nur pro Tab).
+            href: https://open-claw.tailddc8f7.ts.net/
             description: OpenClaw Control (Oracle, via Tailscale)
             icon: oracle.png
             siteMonitor: https://open-claw.tailddc8f7.ts.net
