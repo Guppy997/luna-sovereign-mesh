@@ -8,7 +8,9 @@ set -euo pipefail
 
 WARN_DAYS=30
 NOW=$(date +%s)
-NTFY_URL="https://raspberrypi-1.tailddc8f7.ts.net:10003/luna-alerts"
+# Intern über die gepinnte ClusterIP: tailscale serve nimmt ab 1.104 nur noch
+# Verbindungen über tailscale0 an, vom Host selbst kommt man dort nicht hin.
+NTFY_URL="http://10.43.235.81/luna-alerts"
 
 WARNINGS=""
 

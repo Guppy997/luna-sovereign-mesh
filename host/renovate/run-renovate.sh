@@ -31,10 +31,11 @@ set -e
 ls -1t "$LOG_DIR"/renovate-*.log 2>/dev/null | tail -n +15 | xargs -r rm --
 
 if [ $RC -ne 0 ]; then
+  # ntfy intern über die gepinnte ClusterIP (tailscale serve ab 1.104 nur über tailscale0)
   tail -c 500 "$LOG_FILE" | curl -sf \
     -H "Title: Renovate-Lauf fehlgeschlagen (exit $RC)" \
     -H "Tags: warning" -H "Priority: high" \
     --data-binary @- \
-    "https://raspberrypi-1.tailddc8f7.ts.net:10003/luna-alerts" || true
+    "http://10.43.235.81/luna-alerts" || true
 fi
 exit $RC
