@@ -21,6 +21,13 @@ history and in the [incident postmortems](docs/incidents/).
 ### Changed
 
 - The Homepage tile for Beszel links to `:10013`, and the `beszel` Service has a pinned ClusterIP.
+- Tailscale on the host runs 1.104.4 and is no longer pinned to 1.102.5. Since 1.104 `tailscale serve`
+  only answers on `tailscale0`, see [docs/operations.md](docs/operations.md).
+
+### Fixed
+
+- Homepage status checks (`siteMonitor`) use internal addresses. Through the serve URLs they fail with
+  Tailscale 1.104 and later.
 
 ### Removed
 
