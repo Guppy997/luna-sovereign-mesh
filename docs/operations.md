@@ -51,3 +51,27 @@ image source or a replacement is needed.
 Plane and AFFiNE were migrated by dump/restore onto new PVCs (`*-pg18`); per-table row counts matched.
 The old PVCs (`postgresql-data`, `affine-postgres-data`) are still defined as a way back and can be removed
 once 18 has run for a while.
+
+## `tailscale serve` only answers on `tailscale0` (since 1.104)
+
+Since Tailscale 1.104, `tailscale serve` on Linux binds its listeners to the `tailscale0` interface
+(`ss -ltn` shows `100.113.125.35%tailscale0:100xx`). A request that reaches the tailnet IP any other way is
+refused: from the Pi itself, from a pod, from a Docker container on the host. Devices in the tailnet do not
+notice anything.
+
+Nothing on the Pi or in the cluster may therefore call a serve URL (`https://raspberrypi-1…:100xx`). Use an
+internal address instead: Homepage's `siteMonitor` checks use cluster DNS names or the host's LAN IP, and the
+host scripts send to ntfy through its pinned ClusterIP `http://10.43.235.81`. Settings that only build links
+for the browser (`WEB_URL`, `DOMAIN`, `externalUrl`, `root_url`, Homepage `href`) can keep the serve URL.
+
+An automatic update to 1.104.1 on 2026-10-20 broke exactly these calls and was rolled back the same day; the
+host stayed pinned to 1.102.5 until 2026-10-31. Tailscale documents `TS_SERVE_ALLOW_ALL_INTERFACES` to bring
+back the old behaviour. It is not used here, because it would open serve on every interface again.
+
+Check that nothing inside still depends on a serve URL:
+
+```bash
+kubectl exec -n homepage deploy/homepage -- node -e \
+  'fetch("https://raspberrypi-1.tailddc8f7.ts.net:10008/").then(r=>console.log(r.status)).catch(e=>console.log(e.cause.code))'
+# ECONNREFUSED is expected
+```
