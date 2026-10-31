@@ -222,7 +222,8 @@ All services are reachable exclusively from inside the tailnet, routed by Traefi
 | Prometheus | `…:10001/prometheus` | Metrics & alerting |
 | Home Assistant | `https://…:10010` | Smart home, runs on the host (port 8123) |
 | Fitness-PWA | `https://…:10011` | Gym tracker, runs on the host (port 8091) |
-| Homepage (wall panel) | `https://…:10012` | Homepage only, bypassing Traefik; the only port the wall tablet (`tag:wallpanel`) may reach besides Home Assistant |
+| Homepage (wall panel) | `https://…:10012` | Homepage only, bypassing Traefik, for the wall tablet (`tag:wallpanel`), see [docs/wallpanel.md](docs/wallpanel.md) |
+| Beszel (direct) | `https://…:10013` | Beszel only, bypassing Traefik; reachable from the wall tablet |
 
 </details>
 
