@@ -1,0 +1,10 @@
+# 04:15: nach Renovate (01:30), apt (02:15), Backups (03:00–03:50),
+# vor dem Sonntags-Neustart (04:30, der wartet auf diesen Lauf)
+[Unit]
+Description=Host-Apps täglich nach Merges auf main deployen
+
+[Timer]
+OnCalendar=*-*-* 04:15:00
+
+[Install]
+WantedBy=timers.target
