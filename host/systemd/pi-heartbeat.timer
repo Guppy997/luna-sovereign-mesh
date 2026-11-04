@@ -1,0 +1,10 @@
+# Stündlich und kurz nach jedem Boot. Beim Wächter: Periode 1 h, Karenz 1 h
+[Unit]
+Description=Lebenszeichen stündlich
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+
+[Install]
+WantedBy=timers.target
