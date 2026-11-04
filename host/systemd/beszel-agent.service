@@ -1,0 +1,15 @@
+[Unit]
+Description=Beszel Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/beszel-agent
+Environment="PORT=45876"
+Environment="KEY=ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGvyN8kllfa82D1egeRxv0nGCPBFgTxHUW1hujbiHMfr"
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
