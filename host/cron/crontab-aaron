@@ -1,5 +1,5 @@
 30 3 * * * cd /home/aaron/lern-pwa && docker compose exec -T backend node src/backup.js >> /home/aaron/lern-pwa/backup.log 2>&1
-30 2 * * * /home/aaron/renovate/run-renovate.sh
+30 1 * * * /home/aaron/renovate/run-renovate.sh
 0 8 * * * /home/aaron/renovate/check-ts-key-expiry.sh
 45 3 * * * cd /home/aaron/fitness-pwa && docker compose exec -T backend node src/backup.js >> /home/aaron/fitness-pwa/backup.log 2>&1
 50 3 * * * cd /home/aaron/ausrichtung && docker compose exec -T backend node src/backup.js >> /home/aaron/ausrichtung/backup.log 2>&1
