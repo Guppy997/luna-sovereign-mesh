@@ -5,16 +5,20 @@
 # also nur diese Datei. Archivierte Repos und Forks lässt Renovate von selbst aus.
 # Die Regeln stehen im Preset github>Guppy997/renovate-config bzw. für dieses Repo
 # in renovate.json (PRs am Wochenende, Automerge erst bei grüner CI).
-# Token wird zur Laufzeit aus ~/.git-credentials gelesen — nirgendwo dupliziert.
+# Token kommt zur Laufzeit von gh, er wird nirgendwo gespeichert.
 set -euo pipefail
 
 LOG_DIR="$HOME/renovate/logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/renovate-$(date +%Y%m%d-%H%M).log"
 
-TOKEN=$(grep github.com "$HOME/.git-credentials" | head -1 | sed 's|https://[^:]*:||; s|@github.com.*||')
+# Token des gh-Logins: Er sieht alle eigenen Repos (Scope repo, read:org). Der
+# ältere Token in ~/.git-credentials sieht neuere private Repos nicht, mit
+# Autodiscover fehlten die dann still. Für Updates an .github/workflows braucht
+# er zusätzlich den Scope workflow (gh auth refresh -h github.com -s workflow).
+TOKEN=$(gh auth token 2>/dev/null || true)
 if [ -z "$TOKEN" ]; then
-  echo "Kein GitHub-Token in ~/.git-credentials gefunden" >&2
+  echo "gh ist nicht angemeldet (gh auth login)" >&2
   exit 1
 fi
 

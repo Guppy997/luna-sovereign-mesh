@@ -59,6 +59,13 @@ run() {  # Befehl ausführen, bei --dry-run nur anzeigen
   if [ "$DRY_RUN" = 1 ]; then echo "  würde: $*"; else "$@"; fi
 }
 
+# Immer über den gh-Login holen: Die Klone haben unterschiedliche Credential-
+# Helper (store, gh oder gar keinen), und der Token in ~/.git-credentials sieht
+# neuere private Repos nicht.
+git_fetch() {  # $1=dir
+  git -C "$1" -c credential.helper= -c 'credential.helper=!gh auth git-credential' fetch -q origin main
+}
+
 repo_slug() {  # https://github.com/Guppy997/lern-pwa.git → Guppy997/lern-pwa
   git -C "$1" remote get-url origin | sed -E 's#^(https://|git@)github\.com[/:]##; s#\.git$##'
 }
@@ -118,7 +125,7 @@ deploy_app() {  # $1=name
   [ -d "$dir/.git" ] || { echo "SKIP $name: $dir fehlt"; return 0; }
   clean_on_main "$dir" "$name" || return 0
 
-  git -C "$dir" fetch -q origin main || { echo "SKIP $name: git fetch fehlgeschlagen"; return 0; }
+  git_fetch "$dir" || { echo "SKIP $name: git fetch fehlgeschlagen"; return 0; }
   old=$(git -C "$dir" rev-parse HEAD)
   new=$(git -C "$dir" rev-parse origin/main)
   [ "$old" = "$new" ] && { echo "$name: aktuell (${old:0:7})"; return 0; }
@@ -188,7 +195,7 @@ sync_clone() {  # $1=dir $2=name
   local dir="$1" name="$2" old new
   [ -d "$dir/.git" ] || return 0
   clean_on_main "$dir" "$name" >&2 || return 1
-  git -C "$dir" fetch -q origin main || { echo "SKIP $name: git fetch fehlgeschlagen" >&2; return 1; }
+  git_fetch "$dir" || { echo "SKIP $name: git fetch fehlgeschlagen" >&2; return 1; }
   old=$(git -C "$dir" rev-parse HEAD)
   new=$(git -C "$dir" rev-parse origin/main)
   if [ "$old" != "$new" ]; then
