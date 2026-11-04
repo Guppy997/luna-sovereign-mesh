@@ -1,0 +1,13 @@
+# host/scripts/boot-report.sh, Logs: journalctl -u boot-report
+[Unit]
+Description=Nach dem Boot per ntfy melden, ob alles wieder läuft
+Wants=network-online.target
+After=network-online.target k3s.service docker.service tailscaled.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/aaron/luna-sovereign-mesh/host/scripts/boot-report.sh
+TimeoutStartSec=25min
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+# host/scripts/weekly-report.sh, Logs: journalctl -u weekly-report
+[Unit]
+Description=Wochenbericht zu Updates, Deploys und Backups per ntfy
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=aaron
+Environment=HOME=/home/aaron
+ExecStart=/home/aaron/luna-sovereign-mesh/host/scripts/weekly-report.sh

@@ -1,0 +1,8 @@
+[Unit]
+Description=Wochenbericht sonntags 18:00
+
+[Timer]
+OnCalendar=Sun *-*-* 18:00:00
+
+[Install]
+WantedBy=timers.target
