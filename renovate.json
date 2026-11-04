@@ -36,6 +36,13 @@
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "k3s-io/k3s",
       "versioningTemplate": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\+k3s(?<build>\\d+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Renovate selbst: Version und Digest in host/renovate/run-renovate.sh. Gepinnt statt :latest, weil das Image mit dem vollen GitHub-Token läuft",
+      "managerFilePatterns": ["/^host/renovate/run-renovate\\.sh$/"],
+      "matchStrings": ["(?<depName>renovate/renovate):(?<currentValue>[0-9][^@\\s]*)@(?<currentDigest>sha256:[a-f0-9]+)"],
+      "datasourceTemplate": "docker"
     }
   ],
   "packageRules": [
@@ -64,9 +71,18 @@
       "automergeType": "pr"
     },
     {
-      "description": "Minor automatisch nur für zustandslose Hilfs-Images: keine Datenbank-Migration, ein Revert reicht als Rückweg. ntfy, beszel, beaverhabits und vaultwarden migrieren ihre Daten und bleiben bei manuellem Merge",
+      "description": "Minor automatisch nur für zustandslose Hilfs-Images: keine Datenbank-Migration, ein Revert reicht als Rückweg. Beszel, beaverhabits und vaultwarden migrieren ihre Daten. ntfy speichert nichts dauerhaft, ist aber der Kanal für alle Meldungen: Ein Update, das startet und nichts zustellt, würde niemand bemerken. Alle vier bleiben bei manuellem Merge",
       "matchPackageNames": ["ghcr.io/gethomepage/homepage", "busybox", "alpine/k8s", "node", "ghcr.io/alexbakker/alertmanager-ntfy"],
       "matchUpdateTypes": ["minor"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Renovate selbst (host/renovate/run-renovate.sh): Minor, Patch und Digest automatisch, aber erst 3 Tage nach dem Release, weil das Image mit dem vollen GitHub-Token läuft. strict: Renovate nimmt dann das neueste Release, das alt genug ist",
+      "matchPackageNames": ["renovate/renovate"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "minimumReleaseAge": "3 days",
+      "internalChecksFilter": "strict",
       "automerge": true,
       "automergeType": "pr"
     },

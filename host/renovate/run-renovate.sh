@@ -6,6 +6,9 @@
 # Die Regeln stehen im Preset github>Guppy997/renovate-config bzw. für dieses Repo
 # in renovate.json (PRs am Wochenende, Automerge erst bei grüner CI).
 # Token kommt zur Laufzeit von gh, er wird nirgendwo gespeichert.
+#
+# Probelauf, der auf GitHub nichts ändert (Ergebnis im Log unter ~/renovate/logs):
+#   RENOVATE_DRY_RUN=full ~/renovate/run-renovate.sh
 set -euo pipefail
 
 LOG_DIR="$HOME/renovate/logs"
@@ -22,6 +25,9 @@ if [ -z "$TOKEN" ]; then
   exit 1
 fi
 
+# Version und Digest fest: Das Image läuft mit dem vollen GitHub-Token. Renovate
+# aktualisiert die Zeile selbst, aber erst 3 Tage nach einem Release (renovate.json).
+# -e RENOVATE_DRY_RUN ohne Wert reicht die Variable nur durch, wenn sie gesetzt ist.
 set +e
 docker run --rm \
   --memory=768m \
@@ -32,8 +38,9 @@ docker run --rm \
   -e RENOVATE_ONBOARDING=false \
   -e RENOVATE_PLATFORM=github \
   -e RENOVATE_GIT_AUTHOR="Renovate Bot <193275228+Guppy997@users.noreply.github.com>" \
+  -e RENOVATE_DRY_RUN \
   -e LOG_LEVEL=info \
-  renovate/renovate:latest >"$LOG_FILE" 2>&1
+  renovate/renovate:44.199.2@sha256:0538f498be1b074e2434f8449cab7b2be30f8c0d0baf3b72814010f19db5bcfb >"$LOG_FILE" 2>&1
 RC=$?
 set -e
 
