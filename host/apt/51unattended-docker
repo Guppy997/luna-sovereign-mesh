@@ -1,0 +1,8 @@
+// Docker aus download.docker.com mit aktualisieren. Ubuntus Standard-Liste
+// (50unattended-upgrades) kennt nur die eigenen Quellen, docker-ce und
+// containerd.io blieben deshalb liegen. Ein Update startet dockerd neu, die
+// Host-Apps und Home Assistant sind dann kurz weg (restart: unless-stopped).
+// Tailscale aktualisiert sich selbst (tailscale set --auto-update=true).
+Unattended-Upgrade::Allowed-Origins {
+    "Docker:${distro_codename}";
+};

@@ -7,7 +7,7 @@
   "schedule": ["every weekend"],
   "labels": ["dependencies", "renovate"],
   "assignees": ["Guppy997"],
-  "enabledManagers": ["helmv3", "helm-values", "argocd", "docker-compose", "kubernetes", "github-actions"],
+  "enabledManagers": ["helmv3", "helm-values", "argocd", "docker-compose", "kubernetes", "github-actions", "custom.regex"],
   "helmv3": {
     "managerFilePatterns": [
       "/managed-service-catalog/helm/.+/Chart\\.yaml$/",
@@ -27,7 +27,24 @@
       "/clusters/dev/apps/.+/manifests/.+\\.yaml$/"
     ]
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "k3s-Version in bootstrap.sh = Version auf dem Pi. Renovate schlägt neue Releases als PR vor, eingespielt wird von Hand (Befehl im PR), damit der Neuaufbau dieselbe Version installiert wie der laufende Pi",
+      "managerFilePatterns": ["/^bootstrap\\.sh$/"],
+      "matchStrings": ["K3S_VERSION=\"(?<currentValue>v[^\"]+)\""],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "k3s-io/k3s",
+      "versioningTemplate": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\+k3s(?<build>\\d+)$"
+    }
+  ],
   "packageRules": [
+    {
+      "description": "k3s nie automatisch: Ein Upgrade startet den einzigen Knoten neu",
+      "matchPackageNames": ["k3s-io/k3s"],
+      "automerge": false,
+      "prBodyNotes": ["**Nach dem Merge auf dem Pi** (LAN-Alias `RaspberryPi`, falls du zu Hause bist):\n\n```bash\ncurl -sfL https://get.k3s.io | sudo INSTALL_K3S_VERSION='{{{newValue}}}' sh -s - server\nk3s --version\n```\n\nDie Pods laufen beim Neustart von k3s weiter. Danach prüfen, ob alle Argo-Apps grün sind."]
+    },
     {
       "description": "helm-values nur für Image-Overrides der eigenen Apps (z. B. Homepage). In den Katalogen stehen Beispiel-Images und Overrides deaktivierter Dienste",
       "matchManagers": ["helm-values"],
@@ -45,6 +62,24 @@
       "matchManagers": ["helmv3", "argocd", "kubernetes"],
       "automerge": true,
       "automergeType": "pr"
+    },
+    {
+      "description": "Minor automatisch nur für zustandslose Hilfs-Images: keine Datenbank-Migration, ein Revert reicht als Rückweg. ntfy, beszel, beaverhabits und vaultwarden migrieren ihre Daten und bleiben bei manuellem Merge",
+      "matchPackageNames": ["ghcr.io/gethomepage/homepage", "busybox", "alpine/k8s", "node", "ghcr.io/alexbakker/alertmanager-ntfy"],
+      "matchUpdateTypes": ["minor"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Argo CD verwaltet sich nicht selbst: Ein gemergter Chart-PR wirkt erst nach host/scripts/argo-upgrade.sh auf dem Pi",
+      "matchPackageNames": ["argo-cd"],
+      "prBodyNotes": ["**Nach dem Merge:** auf dem Pi `~/luna-sovereign-mesh/host/scripts/argo-upgrade.sh` ausführen. Argo CD verwaltet sich nicht selbst, ohne `kubara bootstrap` ändert sich im Cluster nichts."]
+    },
+    {
+      "description": "Home Assistant läuft per Docker Compose auf dem Host. pi-autodeploy spielt die neue Version nach dem Merge ein; HA-Releases haben Breaking Changes, deshalb nie automatisch",
+      "matchPackageNames": ["ghcr.io/home-assistant/home-assistant"],
+      "automerge": false,
+      "prBodyNotes": ["Vor dem Merge die Breaking Changes im [Release-Blog](https://www.home-assistant.io/blog/categories/release-notes/) prüfen. Nach dem Merge zieht pi-autodeploy (04:15) die Version nach und meldet sich per ntfy."]
     },
     {
       "description": "Group all kube-prometheus-stack updates",

@@ -52,7 +52,7 @@ flowchart LR
   argo --> k3s["k3s on the Raspberry Pi 5"]
 ```
 
-Renovate merges patch updates on its own once CI passes; everything else waits for a manual merge. There is no inbound path into the cluster — Argo CD only pulls from GitHub.
+Renovate merges patch updates (and minor updates of a few stateless helper images) on its own once CI passes; everything else waits for a manual merge. On the host, a nightly timer deploys the Docker Compose apps after merges, with a rollback if they do not come up healthy (see [operations notes](docs/operations.md#updates-run-on-their-own)). There is no inbound path into the cluster — Argo CD only pulls from GitHub.
 
 ### How a request reaches a service
 

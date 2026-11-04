@@ -1,0 +1,14 @@
+# Deployt die Host-Apps nach Merges auf main (host/scripts/pi-autodeploy.sh).
+# Logs: journalctl -u pi-autodeploy
+[Unit]
+Description=Host-Apps nach Merges auf main deployen
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+User=aaron
+Environment=HOME=/home/aaron
+ExecStart=/home/aaron/luna-sovereign-mesh/host/scripts/pi-autodeploy.sh
+TimeoutStartSec=45min
+Nice=10

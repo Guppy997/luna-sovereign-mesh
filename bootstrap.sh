@@ -173,6 +173,23 @@ configure_host() {
   crontab "$HOST/cron/crontab-aaron"
   ok "Backup, Cron, DNS-Watchdog, Renovate, claude-sudo"
 
+  # Updates ohne Handarbeit: Docker per unattended-upgrades (nachts 02:15),
+  # Host-Apps nach Merges deployen (04:15), Neustart So 04:30 nur bei Bedarf,
+  # Bericht nach jedem Boot und sonntags 18:00. Die Units starten die Skripte
+  # direkt aus diesem Klon, pi-autodeploy zieht ihn jede Nacht nach.
+  sudo install -m 0644 "$HOST/apt/51unattended-docker" /etc/apt/apt.conf.d/51unattended-docker
+  sudo install -D -m 0644 "$HOST/systemd/apt-daily-upgrade.timer.d/10-nachts.conf" \
+    /etc/systemd/system/apt-daily-upgrade.timer.d/10-nachts.conf
+  local unit
+  for unit in pi-autodeploy.service pi-autodeploy.timer reboot-if-required.service \
+              reboot-if-required.timer boot-report.service weekly-report.service weekly-report.timer; do
+    sudo install -m 0644 "$HOST/systemd/$unit" "/etc/systemd/system/$unit"
+  done
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now pi-autodeploy.timer reboot-if-required.timer weekly-report.timer >/dev/null 2>&1
+  sudo systemctl enable boot-report.service >/dev/null 2>&1   # läuft ab dem nächsten Boot
+  ok "Autodeploy, Sonntags-Neustart, Boot- und Wochenbericht, Docker-Updates"
+
   sudo mkdir -p /mnt/backup
   # Die Quelle ist für aaron lesbar, nur das Schreiben braucht root
   # shellcheck disable=SC2024

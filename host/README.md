@@ -21,10 +21,16 @@ None of these files contain secrets or personal data:
 | `scripts/dns-watchdog.sh` + `cron/dns-watchdog` | `/usr/local/bin/`, `/etc/cron.d/` | Restarts Unbound or Pi-hole if they stop answering (every 2 min) |
 | `scripts/apt-upgrade-notify.sh` + `systemd/apt-daily-upgrade.service.d/10-ntfy.conf` | `~/apt-upgrade-notify.sh` (symlink), drop-in | Reports unattended-upgrades results to ntfy |
 | `systemd/beszel-agent.service` | `/etc/systemd/system/` | Beszel monitoring agent (`KEY` is the hub's public key) |
-| `renovate/*.sh` | `~/renovate/` (symlinks) | Nightly Renovate run, Tailscale key-expiry warning |
+| `renovate/*.sh` | `~/renovate/` (symlinks) | Nightly Renovate run (01:30, every own repo with a `renovate.json`), Tailscale key-expiry warning |
+| `apt/51unattended-docker` + `systemd/apt-daily-upgrade.timer.d/10-nachts.conf` | `/etc/apt/apt.conf.d/`, drop-in | unattended-upgrades also updates Docker, and runs at 02:15 instead of in the morning |
+| `scripts/pi-autodeploy.sh` + `systemd/pi-autodeploy.{service,timer}` | `/etc/systemd/system/`, script runs from this clone | 04:15: deploys the host apps after merges to `main` (green CI only, backup first, rollback if not healthy), fast-forwards this clone and `~/luna-pwa`, applies Home Assistant version bumps |
+| `scripts/reboot-if-required.sh` + `systemd/reboot-if-required.{service,timer}` | same | Sunday 04:30: reboots only if an update requires it, after pi-autodeploy and apt are done |
+| `scripts/boot-report.sh` + `systemd/boot-report.service` | same | ntfy report after every boot, planned or not |
+| `scripts/weekly-report.sh` + `systemd/weekly-report.{service,timer}` | same | Sunday 18:00: stale PRs, majors waiting for approval, deploys, Renovate, backups, key expiry |
+| `scripts/argo-upgrade.sh` | run by hand | Applies a merged argo-cd chart update (`kubara bootstrap`, output filtered) |
 | `cron/crontab-aaron` | user crontab of `aaron` | Host-app backups, Renovate, key-expiry check |
 | `apps.txt` | `~/<app>` (git clone) | Lern-PWA, Fitness-PWA, Ausrichtung: each has its own repo and `docker-compose.yml` |
-| `apps/homeassistant/docker-compose.yml` | `~/homeassistant/` | Home Assistant (host network) |
+| `apps/homeassistant/docker-compose.yml` | `~/homeassistant/` (copy, kept in sync by pi-autodeploy) | Home Assistant (host network), version pinned so Renovate can propose updates |
 | `kubara.env` | merged into `../.env` | The non-secret half of kubara's `.env`; the secret half comes from `clusters/dev/secrets/kubara-env-secret.yaml` |
 
 ## Tailscale listens on UDP 41642, not 41641

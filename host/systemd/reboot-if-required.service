@@ -1,0 +1,7 @@
+# host/scripts/reboot-if-required.sh, Logs: journalctl -u reboot-if-required
+[Unit]
+Description=Neustart, wenn ein Update ihn verlangt
+
+[Service]
+Type=oneshot
+ExecStart=/home/aaron/luna-sovereign-mesh/host/scripts/reboot-if-required.sh
