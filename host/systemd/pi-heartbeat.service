@@ -1,0 +1,11 @@
+# host/scripts/heartbeat.sh, Logs: journalctl -u pi-heartbeat
+[Unit]
+Description=Lebenszeichen an den externen Wächter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=aaron
+Environment=HOME=/home/aaron
+ExecStart=/home/aaron/luna-sovereign-mesh/host/scripts/heartbeat.sh

@@ -6,7 +6,7 @@
 #     Majors, die im Dependency Dashboard auf ein Häkchen warten
 #   - was pi-autodeploy in der Woche deployt, übersprungen oder zurückgerollt hat
 #   - Renovate, ausstehender Neustart, apt-Updates
-#   - Backup, Platte, RAM, Ablauf des Tailscale-Keys
+#   - Backup, Platte, RAM, Ablauf des Tailscale-Keys, externer Wächter
 #
 #   --print  nur ausgeben, nicht senden
 set -uo pipefail
@@ -87,6 +87,12 @@ expiry=$(tailscale status --json 2>/dev/null | jq -r '.Self.KeyExpiry // empty')
 if [ -n "$expiry" ]; then
   days=$(( ($(date -d "$expiry" +%s) - now) / 86400 ))
   [ "$days" -lt 30 ] && todo+=("Tailscale-Key des Pi läuft in $days Tagen ab: Admin-Console → Machines → Disable key expiry")
+fi
+
+if [ ! -s "$HOME/.config/pi-maintenance/heartbeat-url" ]; then
+  todo+=("Externer Wächter hat keine Ping-URL: ohne ihn fällt ein Ausfall des Pi niemandem auf (docs/operations.md, External watchdog)")
+elif systemctl -q is-failed pi-heartbeat.service; then
+  todo+=("Lebenszeichen an den externen Wächter schlägt fehl: journalctl -u pi-heartbeat")
 fi
 
 # ── Senden ───────────────────────────────────────────────────────────────────
