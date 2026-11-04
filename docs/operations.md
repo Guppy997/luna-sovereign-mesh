@@ -89,6 +89,7 @@ What happens at night (Europe/Berlin):
 | Sun 04:30 | Reboot, only if `/var/run/reboot-required` exists | `host/scripts/reboot-if-required.sh` |
 | 07:00 | Cluster health digest | `clusters/dev/apps/automation` |
 | Sun 18:00 | Weekly report: stale PRs, majors waiting, deploys, backups, key expiry | `host/scripts/weekly-report.sh` |
+| hourly | Heartbeat to an external watchdog, which sends an e-mail when the Pi goes silent | `host/scripts/heartbeat.sh` |
 
 Renovate merges at 01:30, so an update that breaks a cluster app shows up in the 07:00 digest the same morning.
 
@@ -104,6 +105,9 @@ updates of charts and manifests, and minor updates of the stateless helper image
 - k3s: Renovate bumps `K3S_VERSION` in `bootstrap.sh`; the PR contains the install command.
 - Home Assistant: merge the PR after reading the breaking changes; pi-autodeploy applies it at 04:15.
 - Wedding-Kids-PWA (production, not on this Pi) keeps Dependabot security PRs and manual deploys.
+
+Renovate itself runs a pinned image (version and digest in `host/renovate/run-renovate.sh`), because it
+runs with the full GitHub token. It updates that line on its own, three days after a release at the earliest.
 
 ### pi-autodeploy
 
@@ -125,4 +129,44 @@ git -C ~/ausrichtung reset --hard HEAD~1
 ~/luna-sovereign-mesh/host/scripts/pi-autodeploy.sh --simulate-fail ausrichtung
 rm ~/.local/state/pi-autodeploy/ausrichtung.failed
 ~/luna-sovereign-mesh/host/scripts/pi-autodeploy.sh
+```
+
+### External watchdog
+
+ntfy runs on this Pi. If the Pi itself goes down (power, network, disk), no alert can arrive, and silence
+looks like everything is fine. `pi-heartbeat.timer` therefore pings an external watchdog every hour; when the
+pings stop, the watchdog sends an e-mail. If ntfy does not answer, the script signals a failure instead,
+because no other alert would get through either. Nothing but the ping is sent.
+
+Setup, once:
+
+1. Create a free account at [healthchecks.io](https://healthchecks.io) (open source, can be self-hosted
+   later) and add a check with period 1 hour, grace 1 hour and e-mail as the integration.
+2. Store the ping URL on the Pi. It stays out of the repo, because anyone who knows it can ping for the Pi.
+
+```bash
+mkdir -p ~/.config/pi-maintenance
+read -rp "Ping URL: " u && printf '%s\n' "$u" > ~/.config/pi-maintenance/heartbeat-url
+chmod 600 ~/.config/pi-maintenance/heartbeat-url
+sudo systemctl start pi-heartbeat.service && journalctl -u pi-heartbeat -n 5 --no-pager
+```
+
+The check turns green with the first ping. Until the URL is stored the timer does nothing, and the weekly
+report lists it as a to-do.
+
+### Installing or changing the automation
+
+The scripts run straight from this clone, so a merged change to a script is live after the next
+fast-forward (pi-autodeploy, 04:15). Units, timers, the crontab and the apt config are installed by
+`host/updates.sh`, which `bootstrap.sh` also calls. It is safe to re-run:
+
+```bash
+git -C ~/luna-sovereign-mesh pull --ff-only
+~/luna-sovereign-mesh/host/updates.sh
+```
+
+Renovate dry run, changes nothing on GitHub (the result is in the newest log under `~/renovate/logs/`):
+
+```bash
+RENOVATE_DRY_RUN=full ~/renovate/run-renovate.sh
 ```
