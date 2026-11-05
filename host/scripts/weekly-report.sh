@@ -67,7 +67,7 @@ fi
 
 [ -f /var/run/reboot-required ] && info+=("Neustart steht an (So 04:30 automatisch): $(sort -u /var/run/reboot-required.pkgs 2>/dev/null | tr '\n' ' ')")
 upgradable=$(apt list --upgradable 2>/dev/null | tail -n +2 | cut -d/ -f1 | tr '\n' ' ')
-[ -n "$upgradable" ] && info+=("apt, nicht automatisch: $upgradable")
+[ -n "$upgradable" ] && info+=("apt-Updates ausstehend: $upgradable")
 
 # ── Backup, Ressourcen, Tailscale ────────────────────────────────────────────
 newest=$(ls -1d /mnt/backup/20*/ 2>/dev/null | tail -1)

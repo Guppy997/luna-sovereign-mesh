@@ -41,6 +41,10 @@ history and in the [incident postmortems](docs/incidents/).
 
 ### Fixed
 
+- pi-autodeploy deployed only the first app in `host/apps.txt`: `docker compose exec` (the backup before an
+  update) read the rest of the list from stdin. The list is now read before the loop.
+- Renovate ran out of memory with all repos in one process (Node heap ~384 MB in the 768 MB container). The
+  mesh now runs in a process of its own, and the ntfy alert shows the error lines instead of a stack trace.
 - Homepage status checks (`siteMonitor`) use internal addresses. Through the serve URLs they fail with
   Tailscale 1.104 and later.
 
