@@ -214,7 +214,9 @@ update_homeassistant() {  # $1=alter Mesh-Commit
   local src="$HOST_DIR/apps/homeassistant/docker-compose.yml" dst="$HOME/homeassistant/docker-compose.yml"
   [ -f "$dst" ] || return 0
   cmp -s "$src" "$dst" && return 0
-  echo "homeassistant: Compose-Datei geändert ($(git -C "$MESH_DIR" log -1 --format=%s "$1".. -- "$src"))"
+  local subject
+  subject=$(git -C "$MESH_DIR" log -1 --format=%s "$1".. -- "$src")
+  echo "homeassistant: Compose-Datei geändert${subject:+ ($subject)}"
   run install -m 0644 "$src" "$dst"
   (cd "$HOME/homeassistant" && run docker compose up -d --quiet-pull) >/dev/null 2>&1 || true
   [ "$DRY_RUN" = 1 ] && return 0
@@ -233,10 +235,13 @@ update_homeassistant() {  # $1=alter Mesh-Commit
 
 [ "$DRY_RUN" = 1 ] && echo "(dry-run, es wird nichts geändert)"
 
-while read -r dir _; do
-  [[ -z "$dir" || "$dir" == \#* ]] && continue
-  deploy_app "$dir"
-done < "$HOST_DIR/apps.txt"
+# Erst die Liste lesen, dann deployen: docker compose exec (Backup) liest stdin
+# und hat in einer while-read-Schleife den Rest von apps.txt verschluckt. Am
+# 2026-11-05 wurde deshalb nur die erste App deployt.
+mapfile -t apps < <(awk '!/^[[:space:]]*(#|$)/ {print $1}' "$HOST_DIR/apps.txt")
+for app in "${apps[@]}"; do
+  deploy_app "$app" </dev/null
+done
 
 sync_clone "$HOME/luna-pwa" luna-pwa >/dev/null || true
 # Bash liest das Skript stückweise; git ersetzt Dateien über neue Inodes, das
