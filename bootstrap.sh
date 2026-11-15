@@ -22,7 +22,7 @@ export SOPS_AGE_KEY_FILE="$AGE_KEY"
 export KUBECONFIG="$HOME/.kube/config"
 
 # Versionen = Ist-Stand des Pi am 2026-10-24
-K3S_VERSION="v1.35.9+k3s1"
+K3S_VERSION="v1.37.2+k3s1"
 # Tailscale nicht gepinnt: aktuelle stable-Version, danach Auto-Update (setup_tailscale)
 SOPS_VERSION="v3.13.1"
 YQ_VERSION="v4.54.1"
