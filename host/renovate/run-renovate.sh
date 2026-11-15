@@ -28,6 +28,11 @@ fi
 # Version und Digest fest: Das Image läuft mit dem vollen GitHub-Token. Renovate
 # aktualisiert die Zeile selbst, aber erst 3 Tage nach einem Release (renovate.json).
 # -e RENOVATE_DRY_RUN ohne Wert reicht die Variable nur durch, wenn sie gesetzt ist.
+# npm <12 für die Lockfiles: npm 12 verweigert unter --package-lock-only das Registry-
+# Tarball von Paketen mit bundleDependencies (EALLOWREMOTE, Bug npm/cli#9800), z. B.
+# @tailwindcss/oxide-wasm32-wasi. Betroffen: kliqtape, weddingkids-website, -showcase,
+# Wedding-Kids-PWA (am 2026-11-15 fehlte dadurch die Lockfile in weddingkids-website#2).
+# npm 11 ist auch das npm von Node 24 und der CI. Entfernen, sobald der Bug gefixt ist.
 renovate_run() {  # $1=Überschrift im Log, Rest: zusätzliche docker-Optionen
   echo "=== $1 ===" >>"$LOG_FILE"
   shift
@@ -39,6 +44,7 @@ renovate_run() {  # $1=Überschrift im Log, Rest: zusätzliche docker-Optionen
     -e RENOVATE_PLATFORM=github \
     -e RENOVATE_GIT_AUTHOR="Renovate Bot <193275228+Guppy997@users.noreply.github.com>" \
     -e RENOVATE_DRY_RUN \
+    -e RENOVATE_CONSTRAINTS='{"npm":"<12"}' \
     -e LOG_LEVEL=info \
     "$@" \
     renovate/renovate:44.199.2@sha256:0538f498be1b074e2434f8449cab7b2be30f8c0d0baf3b72814010f19db5bcfb >>"$LOG_FILE" 2>&1
