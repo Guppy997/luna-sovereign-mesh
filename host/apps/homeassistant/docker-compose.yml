@@ -3,7 +3,7 @@ services:
     container_name: homeassistant
     # Feste Version statt :stable: Renovate schlägt Updates als PR vor (kein Automerge,
     # HA-Releases haben Breaking Changes), pi-autodeploy spielt sie nach dem Merge ein
-    image: ghcr.io/home-assistant/home-assistant:2026.9.4
+    image: ghcr.io/home-assistant/home-assistant:2026.11.2
     restart: unless-stopped
     network_mode: host
     environment:
