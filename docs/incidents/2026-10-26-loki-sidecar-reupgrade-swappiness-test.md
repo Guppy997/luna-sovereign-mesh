@@ -65,7 +65,7 @@ At 19:18 the node was at ~9,300 major faults/s, with swap-ins and swap-outs both
 | Major faults/s | ~9,300 | 430 (incl. restart) | 46–224 |
 | Swap-ins/s | ~8,800 | 254 | 8–93 |
 | PSI full | 5–10 % | 0.2 % (10 s) | 0.2–0.7 % |
-| `k3s-server` swapped out | 922 MiB | 88 MiB | — |
+| `k3s-server` swapped out | 922 MiB | 88 MiB | n/a |
 
 Side effects of the restart: the five Kyverno pods restarted once (they lost the API for a moment). Tailscale Serve config, all serve ports, cluster DNS and all Argo CD apps were unchanged.
 
@@ -86,7 +86,7 @@ Alerting (PR #19):
 | Alert | Before | After |
 |---|---|---|
 | `PiSwapHigh` | swap > 50 % for 10m | swap > 85 % for 10m |
-| `PiMemoryPressure` (new) | — | PSI full > 10 % for 10m |
+| `PiMemoryPressure` (new) | n/a | PSI full > 10 % for 10m |
 
 As the [2026-10-23 finding](./2026-10-23-memory-pressure-plane-process-diet.md) noted, zram swap percentage is a poor thrashing signal. PSI measures the actual stall time.
 
