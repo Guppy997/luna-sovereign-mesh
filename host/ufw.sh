@@ -13,6 +13,9 @@ ufw default deny incoming
 ufw default allow outgoing
 ufw default deny routed
 
+# Das Tailnet-Interface ist als Ganzes erlaubt. Die Port-Regeln für $TAILNET darunter
+# dokumentieren nur, was gebraucht wird; was ein Gerät erreichen darf, entscheiden die
+# Tailscale-ACLs (siehe docs/security.md).
 ufw allow in on tailscale0
 ufw allow from "$LAN" to any port 22 comment 'SSH lokal'
 ufw allow from "$TAILNET" to any port 22 comment 'SSH Tailscale'

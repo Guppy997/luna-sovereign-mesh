@@ -33,16 +33,41 @@ Metadata (Kubernetes resource names, namespaces) remains readable intentionally;
 
 ## Zero-Trust Network Access
 
-The cluster is not reachable from the internet **or** from the local network; the LAN is treated as untrusted, the same way a corporate network would be in a zero-trust model.
+The cluster is not reachable from the internet, and its services are not reachable from the local network either. The LAN is treated as untrusted, the same way a corporate network would be in a zero-trust model; only DNS and SSH are open there (see below).
 
 - **Nothing is exposed to the internet.** No router port forwarding, no Tailscale Funnel. Argo CD only *pulls* from GitHub; there is no inbound path.
-- **All access goes through the tailnet** (Tailscale, WireGuard-based). Services are reached via MagicDNS hostnames; HTTPS endpoints are published with Tailscale Serve.
+- **All access to services goes through the tailnet** (Tailscale, WireGuard-based). Services are reached via MagicDNS hostnames; HTTPS endpoints are published with Tailscale Serve.
 - **LAN exposure is reduced to two ports:** DNS (53, Pi-hole serves the home network) and SSH (22, key-only, root login disabled) as a break-glass fallback.
 - **Enforcement happens at two independent layers:**
   - *Kubernetes:* the Traefik LoadBalancer carries `loadBalancerSourceRanges: [100.64.0.0/10]`, enforced by kube-proxy in the kernel. NodePort allocation is disabled (`allocateLoadBalancerNodePorts: false`), a deliberate choice, because NodePort traffic bypasses host firewalls entirely.
-  - *Host:* UFW with a default-deny inbound policy covers everything that does not run in Kubernetes (SSH, Pi-hole, kubelet, node exporter).
+  - *Host:* UFW with a default-deny inbound policy covers everything that does not run in Kubernetes (SSH, Pi-hole, kubelet, node exporter). The host trusts the `tailscale0` interface as a whole (`ufw allow in on tailscale0`), so the per-port tailnet rules in [`host/ufw.sh`](../host/ufw.sh) only document intent. Which device may reach which port is decided by the Tailscale ACLs, not by the host firewall.
 - **Tailscale ACLs follow least privilege:** personal devices may reach the Pi; the tagged cloud node that runs OpenClaw may not. Traffic to it is strictly one-way (Pi → cloud). The wall tablet (`tag:wallpanel`) reaches a handful of direct ports and never a Traefik port, see [wallpanel.md](wallpanel.md).
 - **Split DNS:** Pi-hole forwards the tailnet DNS zone (`*.ts.net`) to MagicDNS, so service hostnames resolve consistently for every device in the house.
+
+## Host Access and the AI Assistant
+
+Parts of this setup are built and operated with an AI coding assistant (Claude Code) that runs as the normal user `aaron` on the Pi or connects to it over SSH. The goal is that it can read state and prepare changes, while anything that needs root stays a deliberate, time-limited decision.
+
+**The intended model:** [`host/claude-sudo`](../host/claude-sudo) opens a sudo window without a password for 1 to 240 minutes (`sudo claude-sudo 60`). It writes a sudoers file that a systemd timer deletes again, and `sudo claude-sudo off` closes the window early. The file is checked with `visudo` before it is installed. Changes to the cluster still go through pull requests and CI; the assistant does not merge them.
+
+**The current state, honestly:**
+
+- The user `aaron` also has a **permanent** `NOPASSWD: ALL` entry (`/etc/sudoers.d/aaron-nopasswd`, created during the initial setup). While it exists, the time limit of `claude-sudo` has no effect: the assistant can use sudo at any time.
+- `aaron` is in the `docker` group and holds a cluster-admin kubeconfig. Both are equivalent to root on this host, with or without sudo. The host automation (`pi-autodeploy`, reports, heartbeat) runs as `aaron` and needs these, but it does not need sudo.
+- What limits the exposure today: SSH accepts keys only, root login is disabled ([`host/ssh/10-hardening.conf`](../host/ssh/10-hardening.conf)), SSH is reachable only from the LAN and the tailnet, and every change to the cluster is visible in Git.
+
+**Next step:** remove `aaron-nopasswd`, so that `claude-sudo` is the only way to sudo without a password, and then require a hardware key for sudo (see below).
+
+## Planned Hardening: Hardware Security Keys
+
+Planned, not implemented yet. The idea is to move the most important credentials onto FIDO2 hardware keys (YubiKey), so that a stolen laptop file or password is not enough on its own:
+
+- **SSH:** FIDO2-backed SSH keys (`ed25519-sk`) instead of key files on the laptop. Every login needs a touch on the key.
+- **sudo and `claude-sudo`:** sudo through `pam-u2f`, so opening a root window for the assistant needs the physical key, not just a shell.
+- **Accounts:** passkeys or FIDO2 as the second factor for GitHub (which Argo CD and Renovate trust) and for the Tailscale login (which decides who can add devices to the tailnet).
+- **Vaultwarden and age:** WebAuthn as the second factor for Vaultwarden, and the offline age recovery key on a YubiKey via `age-plugin-yubikey` instead of a file.
+
+Two keys (main and backup) are planned from the start; with a single key, losing it would lock out SSH, sudo and the recovery path at the same time.
 
 ## Disaster Recovery
 

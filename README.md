@@ -12,7 +12,7 @@ A self-hosted, privacy-first AI infrastructure built on Kubernetes with a strict
 - **Git is the source of truth.** Argo CD pulls this repo with auto-sync, self-heal and prune, so drift in the cluster is reverted automatically.
 - **No plaintext secrets, enforced.** SOPS + age encrypt everything under `secrets/`; CI rejects unencrypted secret files and key or token patterns anywhere else.
 - **Every change is schema-checked before it reaches the cluster.** CI validates the app manifests and renders every catalog chart the way Argo CD does, then checks the output with kubeconform, Renovate's auto-merged updates included.
-- **Nothing is exposed to the internet.** All access goes through a Tailscale tailnet; no port forwarding, no Funnel.
+- **Nothing is exposed to the internet.** All access to services goes through a Tailscale tailnet; no port forwarding, no Funnel.
 - **Nine postmortems** of real failures, with root causes, numbers and what changed afterwards.
 
 ## Contents
@@ -34,7 +34,7 @@ A self-hosted, privacy-first AI infrastructure built on Kubernetes with a strict
 
 Luna Sovereign Mesh is a personal infrastructure project with two goals:
 
-1. **Run a private AI stack** (OpenClaw + custom PWA frontend) on a Raspberry Pi 5 at home, with no data leaving the local network.
+1. **Run a private AI stack** (OpenClaw + custom PWA frontend) without publishing anything to the internet. The frontend and all other services run on a Raspberry Pi 5 at home; the OpenClaw backend runs on a cloud VM that the Pi reaches only through the tailnet.
 2. **Build it the right way:** reproducible, auditable, and secure from day one using the same patterns used in production platform engineering.
 
 The cluster runs on the Pi. The OpenClaw backend runs on a separate Oracle Cloud ARM64 instance, reached from the Pi through the tailnet.
@@ -124,7 +124,7 @@ Further reading: [docs/security.md](docs/security.md) covers the "why" behind ev
 
 ## Security
 
-Secrets are encrypted at rest with [SOPS](https://github.com/getsops/sops) + [Age](https://github.com/FiloSottile/age): no external secret server, ciphertext lives directly in Git. The cluster is unreachable from the internet or the local network; all access goes through a [Tailscale](https://tailscale.com) zero-trust tailnet, enforced at both the Kubernetes (`loadBalancerSourceRanges`) and host (UFW default-deny) layers.
+Secrets are encrypted at rest with [SOPS](https://github.com/getsops/sops) + [Age](https://github.com/FiloSottile/age): no external secret server, ciphertext lives directly in Git. The cluster is unreachable from the internet, and from the local network only DNS and key-only SSH are open; all access to services goes through a [Tailscale](https://tailscale.com) zero-trust tailnet, enforced at both the Kubernetes (`loadBalancerSourceRanges`) and host (UFW default-deny) layers.
 
 Full design rationale (SOPS vs. Vault tradeoffs, zero-trust network enforcement, disaster recovery, backup strategy) → **[docs/security.md](docs/security.md)**
 
@@ -209,7 +209,7 @@ In active use since June 2026 on a single node. The core platform (GitOps, zero-
 - **Backup consolidation:** three overlapping backup paths merged into one script; credentials encrypted with age before they touch the USB medium; **restore verified end-to-end** for the first time, not just assumed.
 - **Housekeeping:** journald capped (was unbounded at 10% of disk), unattended-upgrade reports moved from a non-existent MTA to ntfy, a failing `unbound-resolvconf` unit retired.
 
-**Up next:** off-site copy of the encrypted backup set (currently single-medium), re-raise Prometheus retention now that thermal headroom exists, move the Kyverno exclusions to CEL policies, give Traefik one entrypoint per port instead of header matching, print a wall mount for the panel, find a new image source or replacement for MinIO (see [docs/operations.md](docs/operations.md)).
+**Up next:** off-site copy of the encrypted backup set (currently single-medium), re-raise Prometheus retention now that thermal headroom exists, move the Kyverno exclusions to CEL policies, give Traefik one entrypoint per port instead of header matching, print a wall mount for the panel, find a new image source or replacement for MinIO (see [docs/operations.md](docs/operations.md)). Further out: remove the permanent passwordless sudo entry and move SSH, sudo and account logins to hardware security keys (see [planned hardening](docs/security.md#planned-hardening-hardware-security-keys)).
 
 ## Running Services
 

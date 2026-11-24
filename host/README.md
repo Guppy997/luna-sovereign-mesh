@@ -11,7 +11,8 @@ None of these files contain secrets or personal data:
 | `backup.sh` | `~/backup.sh` (symlink) | Nightly backup to the USB stick, everything age-encrypted |
 | `pi-backup.cron` | `/etc/cron.d/pi-backup` | Runs `backup.sh` as root at 03:00 |
 | `fstab.backup` | appended to `/etc/fstab` | Mounts the backup stick (exFAT, by UUID) at `/mnt/backup` |
-| `claude-sudo` | `/usr/local/sbin/claude-sudo` (root, 0755) | Grants the AI assistant passwordless sudo for a limited time only (`sudo claude-sudo 60`, `sudo claude-sudo off`) |
+| `claude-sudo` | `/usr/local/sbin/claude-sudo` (root, 0755) | Opens a time-limited sudo window without a password for the AI assistant (`sudo claude-sudo 60`, `sudo claude-sudo off`). Currently not effective as a limit, because a permanent `NOPASSWD` entry still exists; see [docs/security.md](../docs/security.md#host-access-and-the-ai-assistant) |
+| `ssh/10-hardening.conf` | `/etc/ssh/sshd_config.d/` | SSH with keys only, no root login (checked with `sshd -t` before reload) |
 | `k3s/config.yaml` | `/etc/rancher/k3s/config.yaml` | k3s without its bundled Traefik (Traefik comes from Argo CD) |
 | `ufw.sh` | run once | Firewall: from the LAN only SSH and DNS, everything else only via the tailnet |
 | `updates.sh` | run once, again after changes to units, timers or the crontab | Installs the update automation: Renovate symlinks, crontab, apt config, and the units and timers below |
