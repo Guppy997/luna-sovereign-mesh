@@ -124,7 +124,7 @@ Further reading: [docs/security.md](docs/security.md) covers the "why" behind ev
 
 ## Security
 
-Secrets are encrypted at rest with [SOPS](https://github.com/getsops/sops) + [Age](https://github.com/FiloSottile/age): no external secret server, ciphertext lives directly in Git. The cluster is unreachable from the internet or the local network; all access goes through a [Tailscale](https://tailscale.com) zero-trust tailnet, enforced at both the Kubernetes (`loadBalancerSourceRanges`) and host (UFW default-deny) layers.
+Secrets are encrypted at rest with [SOPS](https://github.com/getsops/sops) + [Age](https://github.com/FiloSottile/age): no external secret server, ciphertext lives directly in Git. The cluster is unreachable from the internet, and from the local network only DNS and key-only SSH are open; all access to services goes through a [Tailscale](https://tailscale.com) zero-trust tailnet, enforced at both the Kubernetes (`loadBalancerSourceRanges`) and host (UFW default-deny) layers.
 
 Full design rationale (SOPS vs. Vault tradeoffs, zero-trust network enforcement, disaster recovery, backup strategy) → **[docs/security.md](docs/security.md)**
 
