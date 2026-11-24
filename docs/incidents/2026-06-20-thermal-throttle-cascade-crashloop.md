@@ -2,12 +2,12 @@
 
 **Date:** 2026-06-20
 **Duration:** ~20 minutes (23:08–23:28 active degradation; recovery in-session)
-**Severity:** High — cluster near-freeze; D-Bus collapsed; most pods crash-looped; SSH sessions broken
-**Status:** Resolved — see [2026-06-29-cooling-upgrade-resource-optimisation.md](2026-06-29-cooling-upgrade-resource-optimisation.md)
+**Severity:** High: cluster near-freeze; D-Bus collapsed; most pods crash-looped; SSH sessions broken
+**Status:** Resolved: see [2026-06-29-cooling-upgrade-resource-optimisation.md](2026-06-29-cooling-upgrade-resource-optimisation.md)
 
 ## Summary
 
-The Raspberry Pi reached 85.6 °C under sustained load, triggering aggressive CPU throttling. The resulting performance degradation caused the K3s API server to miss TLS handshake deadlines, which starved all cluster components of API connectivity simultaneously. The cascade: policy-reporter (231 restarts), kube-state-metrics (224 restarts), kyverno-reports-controller (18 restarts), and several others entered crash loops. The kernel logged repeated RCU stalls; D-Bus collapsed, disconnecting systemd-managed services; SSH sessions dropped. The system did not reboot — uptime was continuous since 2026-06-16 — but was functionally unresponsive for the degradation window.
+The Raspberry Pi reached 85.6 °C under sustained load, triggering aggressive CPU throttling. The resulting performance degradation caused the K3s API server to miss TLS handshake deadlines, which starved all cluster components of API connectivity simultaneously. The cascade: policy-reporter (231 restarts), kube-state-metrics (224 restarts), kyverno-reports-controller (18 restarts), and several others entered crash loops. The kernel logged repeated RCU stalls; D-Bus collapsed, disconnecting systemd-managed services; SSH sessions dropped. The system did not reboot (uptime was continuous since 2026-06-16) but was functionally unresponsive for the degradation window.
 
 As a temporary mitigation, Prometheus, Loki, and Kyverno were disabled via cluster-secret label (the same mechanism already used for longhorn, metallb, etc.). This reduced RAM usage by ~1 GB, freed ~1.2 GB of swap, dropped load average from 49 → 0.65, and brought temperature down from 85.6 °C to 68 °C. These services remain off until proper cooling is in place.
 
@@ -20,7 +20,7 @@ As a temporary mitigation, Prometheus, Loki, and Kyverno were disabled via clust
 | 2026-06-20 23:13 | `snapd` watchdog timeout (5 min limit exceeded) |
 | 2026-06-20 23:19 | SSH session creation fails: `Failed to create session: Connection timed out` |
 | 2026-06-20 23:23–23:25 | D-Bus connection terminated across all systemd services (timesyncd, logind, networkd, wpa_supplicant, resolved, avahi, udisks2, polkit) |
-| 2026-06-20 23:24 | `ssh_packet_send_debug: Broken pipe` — active SSH sessions drop |
+| 2026-06-20 23:24 | `ssh_packet_send_debug: Broken pipe`: active SSH sessions drop |
 | 2026-06-20 23:26 | Load average: 49.14 / 98.99 / 81.62. RAM: 7.1 GB / 7.8 GB. Swap: 4.0 GB / 4.0 GB (5 MB free). Temp: 85.6 °C |
 | 2026-06-20 23:26 | Crash-loop audit: policy-reporter 231 restarts, policy-reporter-kyverno-plugin 379, kube-state-metrics 224 |
 | 2026-06-20 23:28 | All crash-looping pods restarted via `kubectl rollout restart`; kyverno-admission-controller pod deleted to reset CrashLoopBackOff backoff |
@@ -58,7 +58,7 @@ The `plane` stack (PostgreSQL, Redis, API, Worker, Beat, Space, Admin, MinIO) wa
 
 **1. Crash-loop recovery**
 
-All crash-looping pods were restarted with `kubectl rollout restart`. The kyverno-admission-controller pod was force-deleted to reset its CrashLoopBackOff backoff timer — on fresh start it came up cleanly with 0 restarts, confirming the crash was caused by API unavailability during the throttle window, not a persistent bug.
+All crash-looping pods were restarted with `kubectl rollout restart`. The kyverno-admission-controller pod was force-deleted to reset its CrashLoopBackOff backoff timer: on fresh start it came up cleanly with 0 restarts, confirming the crash was caused by API unavailability during the throttle window, not a persistent bug.
 
 **2. Services temporarily disabled**
 
@@ -69,7 +69,7 @@ The following services were disabled via the cluster-secret label mechanism (sam
 | kube-prometheus-stack | `disabled` | ~800 MB |
 | loki | `disabled` | ~400 MB |
 | kyverno | `disabled` | ~150 MB |
-| kyverno-policies | `disabled` | — |
+| kyverno-policies | `disabled` | n/a |
 | kyverno-policy-reporter | `disabled` | ~100 MB |
 
 **Total freed: ~1–1.2 GB RAM, ~1.2 GB swap.**
@@ -108,7 +108,7 @@ If temperature remains borderline after hardware fix, the following can be tuned
 
 ## Lessons Learned
 
-- **Thermal throttling is invisible in application logs.** The K3s API server doesn't log "I'm slow because the CPU is throttled" — it just starts missing timeouts. RCU stalls in `dmesg` are the only kernel-level signal. Add temperature monitoring to the post-incident checklist.
+- **Thermal throttling is invisible in application logs.** The K3s API server doesn't log "I'm slow because the CPU is throttled": it just starts missing timeouts. RCU stalls in `dmesg` are the only kernel-level signal. Add temperature monitoring to the post-incident checklist.
 - **Full swap = the system is already in trouble.** Swap at 100 % means every new allocation is fighting SD/SSD I/O. Any additional load at that point tips into a cascade. Swap saturation should be an alerting threshold, not a discovery after the fact.
 - **The cluster-secret label mechanism works well for controlled service reduction.** It is clean, reversible in one command, and integrates with the existing disabled/enabled pattern already used in this repo.
 - **policy-reporter's SQLite UNIQUE constraint bug.** The reporter inserts `id=14695981039346656037` (empty ClusterPolicyReport) repeatedly within a single pod lifetime, hitting a UNIQUE constraint on every insert attempt. This is a non-fatal error (the pod continues), but it generates constant log noise and likely contributes to elevated CPU/I/O when the cluster is under load. Worth filing upstream or working around with a periodic DB reset.
@@ -135,8 +135,8 @@ cat /proc/loadavg       # 1-min should be < 4 on a 4-core Pi at normal operation
 
 ## Follow-ups
 
-- [x] **Hardware:** Install enclosure with active cooling — done 2026-06-29 (3D-printed case + Noctua A6x25, 85 °C → 43.9 °C)
-- [x] Re-enable Prometheus, Loki, Kyverno after cooling hardware installed — done 2026-06-29
-- [x] Add temperature to ntfy alert rules once Prometheus is back — done 2026-06-29 (`PiTemperatureHigh`, > 70 °C for 5 min, see [monitoring-alerts](../../clusters/dev/apps/monitoring-alerts/manifests/prometheusrule.yaml))
-- [ ] Investigate policy-reporter SQLite UNIQUE constraint bug — either patch values or open upstream issue
-- [x] Consider swap usage as an alert threshold in Prometheus — done 2026-06-29 (`PiSwapHigh`, > 80 % for 10 min, same PrometheusRule)
+- [x] **Hardware:** Install enclosure with active cooling, done 2026-06-29 (3D-printed case + Noctua A6x25, 85 °C → 43.9 °C)
+- [x] Re-enable Prometheus, Loki, Kyverno after cooling hardware installed, done 2026-06-29
+- [x] Add temperature to ntfy alert rules once Prometheus is back, done 2026-06-29 (`PiTemperatureHigh`, > 70 °C for 5 min, see [monitoring-alerts](../../clusters/dev/apps/monitoring-alerts/manifests/prometheusrule.yaml))
+- [ ] Investigate policy-reporter SQLite UNIQUE constraint bug, either patch values or open upstream issue
+- [x] Consider swap usage as an alert threshold in Prometheus, done 2026-06-29 (`PiSwapHigh`, > 80 % for 10 min, same PrometheusRule)

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Guppy997/luna-sovereign-mesh/security/advisories/new
+    about: Please report vulnerabilities privately, not in a public issue. See SECURITY.md.
+  - name: Security model and design decisions
+    url: https://github.com/Guppy997/luna-sovereign-mesh/blob/main/docs/security.md
+    about: Read this first to check whether your idea fits the concept.

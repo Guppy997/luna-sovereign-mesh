@@ -10,6 +10,8 @@ history and in the [incident postmortems](docs/incidents/).
 
 ### Added
 
+- Publishing basics: `.env.example` for `kubara bootstrap`, issue forms (bug, idea) with a link to private
+  vulnerability reporting, and a pull request template.
 - Wall panel: an old Android tablet shows Homepage and Home Assistant in kiosk mode and is treated as an
   untrusted device (`tag:wallpanel`), see [docs/wallpanel.md](docs/wallpanel.md).
 - Direct `tailscale serve` entry points that bypass Traefik: `:10012` for Homepage (Service
@@ -29,6 +31,10 @@ history and in the [incident postmortems](docs/incidents/).
 
 ### Changed
 
+- CI pins `actions/checkout` to a commit hash and runs with `TZ=Europe/Berlin`.
+- `.gitignore` also excludes keys, certificates, databases and backups.
+- README: nine postmortems, port map with 14 ports and 17 services, the Oracle VM hosts OpenClaw (no test
+  sandbox any more); copyright entered in `LICENSE`.
 - Renovate runs for every own repo with a `renovate.json` (autodiscover) at 01:30 instead of only for this
   repo at 02:30. Minor updates of stateless helper images auto-merge, and Renovate now tracks k3s
   (`K3S_VERSION` in `bootstrap.sh`) and Home Assistant (pinned to 2026.9.4 instead of `stable`).

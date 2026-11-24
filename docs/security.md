@@ -8,8 +8,8 @@ All Kubernetes secrets are encrypted with [Mozilla SOPS](https://github.com/gets
 
 | | SOPS + Age | HashiCorp Vault |
 |---|---|---|
-| Infrastructure required | None — files are self-contained | Needs a running Vault server |
-| GitOps compatibility | Native — encrypted files live in Git | Requires external secret sync |
+| Infrastructure required | None: files are self-contained | Needs a running Vault server |
+| GitOps compatibility | Native: encrypted files live in Git | Requires external secret sync |
 | Operational overhead | Near-zero | High (HA, unsealing, backups) |
 | Cost | Free, open-source | Free tier limited, OSS complex |
 
@@ -23,7 +23,7 @@ The Age private key is stored offline (not in this repository) and is the single
 clusters/dev/secrets/*.yaml   ← AES256-GCM encrypted, Age-keyed
 ```
 
-Metadata (Kubernetes resource names, namespaces) remains readable intentionally — only `data` and `stringData` fields are encrypted.
+Metadata (Kubernetes resource names, namespaces) remains readable intentionally; only `data` and `stringData` fields are encrypted.
 
 ### What is never in Git
 
@@ -33,15 +33,15 @@ Metadata (Kubernetes resource names, namespaces) remains readable intentionally 
 
 ## Zero-Trust Network Access
 
-The cluster is not reachable from the internet **or** from the local network — the LAN is treated as untrusted, the same way a corporate network would be in a zero-trust model.
+The cluster is not reachable from the internet **or** from the local network; the LAN is treated as untrusted, the same way a corporate network would be in a zero-trust model.
 
-- **Nothing is exposed to the internet.** No router port forwarding, no Tailscale Funnel. Argo CD only *pulls* from GitHub — there is no inbound path.
+- **Nothing is exposed to the internet.** No router port forwarding, no Tailscale Funnel. Argo CD only *pulls* from GitHub; there is no inbound path.
 - **All access goes through the tailnet** (Tailscale, WireGuard-based). Services are reached via MagicDNS hostnames; HTTPS endpoints are published with Tailscale Serve.
-- **LAN exposure is reduced to two ports:** DNS (53 — Pi-hole serves the home network) and SSH (22 — key-only, root login disabled) as a break-glass fallback.
+- **LAN exposure is reduced to two ports:** DNS (53, Pi-hole serves the home network) and SSH (22, key-only, root login disabled) as a break-glass fallback.
 - **Enforcement happens at two independent layers:**
-  - *Kubernetes:* the Traefik LoadBalancer carries `loadBalancerSourceRanges: [100.64.0.0/10]`, enforced by kube-proxy in the kernel. NodePort allocation is disabled (`allocateLoadBalancerNodePorts: false`) — a deliberate choice, because NodePort traffic bypasses host firewalls entirely.
+  - *Kubernetes:* the Traefik LoadBalancer carries `loadBalancerSourceRanges: [100.64.0.0/10]`, enforced by kube-proxy in the kernel. NodePort allocation is disabled (`allocateLoadBalancerNodePorts: false`), a deliberate choice, because NodePort traffic bypasses host firewalls entirely.
   - *Host:* UFW with a default-deny inbound policy covers everything that does not run in Kubernetes (SSH, Pi-hole, kubelet, node exporter).
-- **Tailscale ACLs follow least privilege:** personal devices may reach the Pi; the tagged cloud node may not — traffic to the cloud sandbox is strictly one-way (Pi → cloud). The wall tablet (`tag:wallpanel`) reaches a handful of direct ports and never a Traefik port, see [wallpanel.md](wallpanel.md).
+- **Tailscale ACLs follow least privilege:** personal devices may reach the Pi; the tagged cloud node that runs OpenClaw may not. Traffic to it is strictly one-way (Pi → cloud). The wall tablet (`tag:wallpanel`) reaches a handful of direct ports and never a Traefik port, see [wallpanel.md](wallpanel.md).
 - **Split DNS:** Pi-hole forwards the tailnet DNS zone (`*.ts.net`) to MagicDNS, so service hostnames resolve consistently for every device in the house.
 
 ## Disaster Recovery
@@ -81,10 +81,10 @@ Log: `/mnt/backup/backup.log`
 
 ### What is NOT backed up here
 
-Everything in this Git repository is the backup for the cluster configuration — encrypted secrets, manifests, Helm values. The USB stick covers only the runtime state that Git cannot capture (live database contents, uploaded files, secret values).
+Everything in this Git repository is the backup for the cluster configuration: encrypted secrets, manifests, Helm values. The USB stick covers only the runtime state that Git cannot capture (live database contents, uploaded files, secret values).
 
 ## On Running Production Tooling on a Single Pi
 
 kubara and k3s are designed for multi-node production clusters. In that environment a forced node reboot is routine: the control plane stays up, workloads reschedule, and CNI state synchronizes from surviving members.
 
-On a single-node Pi there is no redundancy — a CNI crash takes the entire cluster offline. Implementing automated single-node recovery (ordered CNI restart, DNS restoration, health gating) would be significant tooling work for a rare edge case. The accepted tradeoff is manual recovery, documented as a runbook in the [incident postmortems](incidents/).
+On a single-node Pi there is no redundancy: a CNI crash takes the entire cluster offline. Implementing automated single-node recovery (ordered CNI restart, DNS restoration, health gating) would be significant tooling work for a rare edge case. The accepted tradeoff is manual recovery, documented as a runbook in the [incident postmortems](incidents/).

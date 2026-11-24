@@ -7,7 +7,7 @@
 
 ## Summary
 
-New 3D-printed enclosure with Noctua A6x25 fan installed. Operating temperature dropped from ~70 °C (loaded, passive cooling) to **43.9 °C** at startup with all services running — a reduction of ~26 °C. All services that were disabled as a temporary mitigation on 2026-06-20 (Prometheus, Loki, Kyverno) were re-enabled. Kubernetes memory requests across Plane and kube-prometheus-stack were tuned for single-user homelab operation, reducing scheduler pressure from 96 % to 90 %.
+New 3D-printed enclosure with Noctua A6x25 fan installed. Operating temperature dropped from ~70 °C (loaded, passive cooling) to **43.9 °C** at startup with all services running, a reduction of ~26 °C. All services that were disabled as a temporary mitigation on 2026-06-20 (Prometheus, Loki, Kyverno) were re-enabled. Kubernetes memory requests across Plane and kube-prometheus-stack were tuned for single-user homelab operation, reducing scheduler pressure from 96 % to 90 %.
 
 ## Hardware Change
 
@@ -86,16 +86,16 @@ Temperature:  43.9 °C (idle after reboot with all services)
 RAM actual:   ~6.4 GB / 7.8 GB (82%)
 RAM requests: ~6986 Mi / ~7800 Mi (90%)
 Swap used:    ~662 Mi / 4 GB (16%)
-All pods:     Running / Completed — 0 failures
+All pods:     Running / Completed: 0 failures
 ```
 
 ## Follow-ups from 2026-06-20 Incident
 
-- [x] Hardware: Install enclosure with active cooling — **done 2026-06-29**
-- [x] Re-enable Prometheus, Loki, Kyverno — **done 2026-06-29**
-- [x] Add temperature to ntfy alert rules (alert if temp > 70 °C for > 5 min) — done 2026-06-29 (`PiTemperatureHigh`)
-- [ ] Investigate policy-reporter SQLite UNIQUE constraint bug — still open
-- [x] Add swap usage as Prometheus alert threshold (> 80 % for > 10 min) — done 2026-06-29 (`PiSwapHigh`)
+- [x] Hardware: Install enclosure with active cooling, **done 2026-06-29**
+- [x] Re-enable Prometheus, Loki, Kyverno, **done 2026-06-29**
+- [x] Add temperature to ntfy alert rules (alert if temp > 70 °C for > 5 min), done 2026-06-29 (`PiTemperatureHigh`)
+- [ ] Investigate policy-reporter SQLite UNIQUE constraint bug, still open
+- [x] Add swap usage as Prometheus alert threshold (> 80 % for > 10 min), done 2026-06-29 (`PiSwapHigh`)
 
 ## Monitoring Alerts Added (2026-06-29, Commit 86fa337)
 
