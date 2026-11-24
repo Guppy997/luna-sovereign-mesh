@@ -1,0 +1,53 @@
+name: Bug
+description: Something in the manifests, scripts or docs does not work as described.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Please use placeholders only: no real hostnames, tailnet names, IP addresses, tokens or logs with personal data.
+        Security issues belong in a [private report](https://github.com/Guppy997/luna-sovereign-mesh/security/advisories/new), not here.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Cluster apps (clusters/dev/apps)
+        - Service catalog (managed/customer-service-catalog)
+        - Host setup (host/, bootstrap.sh, restore.sh)
+        - CI / Renovate
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit or date of main you used
+      placeholder: e.g. 3f2a1b0 or 2026-11-24
+  - type: input
+    id: environment
+    attributes:
+      label: Hardware and OS
+      placeholder: e.g. Raspberry Pi 5 (8 GB), Ubuntu Server 24.04, k3s v1.35
