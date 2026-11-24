@@ -81,3 +81,14 @@ out/
 /go.sum
 /go.mod
 bin/
+# Publish standard: never commit keys, certificates, databases or backups
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.db
+*.sqlite*
+backups/
+data/
