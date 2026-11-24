@@ -10,6 +10,10 @@ history and in the [incident postmortems](docs/incidents/).
 
 ### Added
 
+- `host/ssh/10-hardening.conf`: SSH with keys only and no root login is now part of the repo; `bootstrap.sh`
+  installs it and checks it with `sshd -t` before reloading.
+- `docs/security.md`: how the AI assistant gets host access, including the current permanent `NOPASSWD`
+  entry, and the planned move to hardware security keys (YubiKey) for SSH, sudo, accounts and the age key.
 - Publishing basics: `.env.example` for `kubara bootstrap`, issue forms (bug, idea) with a link to private
   vulnerability reporting, and a pull request template.
 - Wall panel: an old Android tablet shows Homepage and Home Assistant in kiosk mode and is treated as an
@@ -31,6 +35,9 @@ history and in the [incident postmortems](docs/incidents/).
 
 ### Changed
 
+- Security docs no longer claim that nothing is reachable from the local network: DNS and key-only SSH are
+  open there. The host firewall trusts the tailnet interface; per-device limits come from the Tailscale ACLs.
+- The pull request template no longer forbids tailnet names and internal IPs, which are documented on purpose.
 - CI pins `actions/checkout` to a commit hash and runs with `TZ=Europe/Berlin`.
 - `.gitignore` also excludes keys, certificates, databases and backups.
 - README: nine postmortems, port map with 14 ports and 17 services, the Oracle VM hosts OpenClaw (no test
