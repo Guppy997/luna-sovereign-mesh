@@ -209,7 +209,7 @@ In active use since June 2026 on a single node. The core platform (GitOps, zero-
 - **Backup consolidation:** three overlapping backup paths merged into one script; credentials encrypted with age before they touch the USB medium; **restore verified end-to-end** for the first time, not just assumed.
 - **Housekeeping:** journald capped (was unbounded at 10% of disk), unattended-upgrade reports moved from a non-existent MTA to ntfy, a failing `unbound-resolvconf` unit retired.
 
-**Up next:** off-site copy of the encrypted backup set (currently single-medium), re-raise Prometheus retention now that thermal headroom exists, move the Kyverno exclusions to CEL policies, give Traefik one entrypoint per port instead of header matching, print a wall mount for the panel, find a new image source or replacement for MinIO (see [docs/operations.md](docs/operations.md)).
+**Up next:** off-site copy of the encrypted backup set (currently single-medium), re-raise Prometheus retention now that thermal headroom exists, move the Kyverno exclusions to CEL policies, give Traefik one entrypoint per port instead of header matching, print a wall mount for the panel, find a new image source or replacement for MinIO (see [docs/operations.md](docs/operations.md)). Further out: remove the permanent passwordless sudo entry and move SSH, sudo and account logins to hardware security keys (see [planned hardening](docs/security.md#planned-hardening-hardware-security-keys)).
 
 ## Running Services
 
