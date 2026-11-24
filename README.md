@@ -12,7 +12,7 @@ A self-hosted, privacy-first AI infrastructure built on Kubernetes with a strict
 - **Git is the source of truth.** Argo CD pulls this repo with auto-sync, self-heal and prune, so drift in the cluster is reverted automatically.
 - **No plaintext secrets, enforced.** SOPS + age encrypt everything under `secrets/`; CI rejects unencrypted secret files and key or token patterns anywhere else.
 - **Every change is schema-checked before it reaches the cluster.** CI validates the app manifests and renders every catalog chart the way Argo CD does, then checks the output with kubeconform, Renovate's auto-merged updates included.
-- **Nothing is exposed to the internet.** All access goes through a Tailscale tailnet; no port forwarding, no Funnel.
+- **Nothing is exposed to the internet.** All access to services goes through a Tailscale tailnet; no port forwarding, no Funnel.
 - **Nine postmortems** of real failures, with root causes, numbers and what changed afterwards.
 
 ## Contents
@@ -34,7 +34,7 @@ A self-hosted, privacy-first AI infrastructure built on Kubernetes with a strict
 
 Luna Sovereign Mesh is a personal infrastructure project with two goals:
 
-1. **Run a private AI stack** (OpenClaw + custom PWA frontend) on a Raspberry Pi 5 at home, with no data leaving the local network.
+1. **Run a private AI stack** (OpenClaw + custom PWA frontend) without publishing anything to the internet. The frontend and all other services run on a Raspberry Pi 5 at home; the OpenClaw backend runs on a cloud VM that the Pi reaches only through the tailnet.
 2. **Build it the right way:** reproducible, auditable, and secure from day one using the same patterns used in production platform engineering.
 
 The cluster runs on the Pi. The OpenClaw backend runs on a separate Oracle Cloud ARM64 instance, reached from the Pi through the tailnet.

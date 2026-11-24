@@ -36,7 +36,7 @@ Metadata (Kubernetes resource names, namespaces) remains readable intentionally;
 The cluster is not reachable from the internet, and its services are not reachable from the local network either. The LAN is treated as untrusted, the same way a corporate network would be in a zero-trust model; only DNS and SSH are open there (see below).
 
 - **Nothing is exposed to the internet.** No router port forwarding, no Tailscale Funnel. Argo CD only *pulls* from GitHub; there is no inbound path.
-- **All access goes through the tailnet** (Tailscale, WireGuard-based). Services are reached via MagicDNS hostnames; HTTPS endpoints are published with Tailscale Serve.
+- **All access to services goes through the tailnet** (Tailscale, WireGuard-based). Services are reached via MagicDNS hostnames; HTTPS endpoints are published with Tailscale Serve.
 - **LAN exposure is reduced to two ports:** DNS (53, Pi-hole serves the home network) and SSH (22, key-only, root login disabled) as a break-glass fallback.
 - **Enforcement happens at two independent layers:**
   - *Kubernetes:* the Traefik LoadBalancer carries `loadBalancerSourceRanges: [100.64.0.0/10]`, enforced by kube-proxy in the kernel. NodePort allocation is disabled (`allocateLoadBalancerNodePorts: false`), a deliberate choice, because NodePort traffic bypasses host firewalls entirely.

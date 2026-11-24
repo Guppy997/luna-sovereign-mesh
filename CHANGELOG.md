@@ -37,6 +37,8 @@ history and in the [incident postmortems](docs/incidents/).
 
 - Security docs no longer claim that nothing is reachable from the local network: DNS and key-only SSH are
   open there. The host firewall trusts the tailnet interface; per-device limits come from the Tailscale ACLs.
+- README no longer says that no data leaves the local network: the OpenClaw backend runs on a cloud VM,
+  reached only through the tailnet.
 - The pull request template no longer forbids tailnet names and internal IPs, which are documented on purpose.
 - CI pins `actions/checkout` to a commit hash and runs with `TZ=Europe/Berlin`.
 - `.gitignore` also excludes keys, certificates, databases and backups.
