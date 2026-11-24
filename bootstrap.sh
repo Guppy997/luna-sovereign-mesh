@@ -169,6 +169,16 @@ configure_host() {
   sudo install -o root -g root -m 0755 "$HOST/claude-sudo" /usr/local/sbin/claude-sudo
   ok "Backup, DNS-Watchdog, claude-sudo"
 
+  # SSH nur mit Schlüssel. Erst prüfen, dann neu laden, sonst sperrt ein Fehler aus.
+  sudo install -o root -g root -m 0644 "$HOST/ssh/10-hardening.conf" /etc/ssh/sshd_config.d/10-hardening.conf
+  if sudo sshd -t; then
+    sudo systemctl reload ssh
+    ok "SSH: nur Schlüssel, kein root-Login"
+  else
+    sudo rm -f /etc/ssh/sshd_config.d/10-hardening.conf
+    warn "sshd-Konfiguration ungültig, 10-hardening.conf wieder entfernt"
+  fi
+
   # Updates ohne Handarbeit: Renovate und crontab, Docker per unattended-upgrades,
   # Autodeploy, Sonntags-Neustart, Boot- und Wochenbericht, Lebenszeichen
   bash "$HOST/updates.sh" | sed 's/^/    /'
